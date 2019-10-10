@@ -4,7 +4,7 @@ package main
 import "C"
 import (
 	"context"
-	"github.com/stevenaldinger/vault/pkg/vault"
+	"github.com/teamsnap/vault/pkg/vault"
 	"fmt"
 	"encoding/json"
 )
