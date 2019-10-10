@@ -15,7 +15,7 @@ export
 
 # =========================== [START] Build Targets ========================== #
 build:
-	@env GOOS=$(GOOS) GOARCH=amd64 go build -buildmode c-archive -o vault.$(GOOS).a vault.go
+	@env GOOS=$(GOOS) GOARCH=amd64 go build -buildmode c-archive -o vault.$(GOOS).a main.go
 
 # on MacOS
 build_all: docker_build clean
