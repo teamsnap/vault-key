@@ -1,0 +1,6 @@
+# Directories
+/build
+
+# Files
+/vault.*.a
+/vault.*.h

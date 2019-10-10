@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+data:
+  service-account-key.json: base64encodedjsonfile=
+kind: Secret
+metadata:
+  name: vault-service-account
+  namespace: default
+type: Opaque
+
+---
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: vault-secret-sync
+  namespace: default
+spec:
+  # run every hour
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: vault
+            image: teamsnap/vault-k8s-secret:latest
+            env:
+            - name: GCLOUD_PROJECT
+              value: project-name-123
+            - name: FUNCTION_IDENTITY
+              value: project-name-123@appspot.gserviceaccount.com
+            - name: VAULT_ADDR
+              value: "https://vault.your-domain.com"
+            - name: VAULT_ROLE
+              value: vault-role-cloud-functions
+            - name: VAULT_SECRET
+              value: test/data/test
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/service-account-key.json
+            volumeMounts:
+            - name: service-account-key
+              mountPath: /var/secrets/google
+          volumes:
+          - name: service-account-key
+            secret:
+              secretName: vault-service-account
+          restartPolicy: Never

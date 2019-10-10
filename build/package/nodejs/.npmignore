@@ -1,0 +1,9 @@
+# Directories
+/build
+
+# Files
+/Dockerfile
+/go.mod
+/go.sum
+/Makefile
+/vault.go

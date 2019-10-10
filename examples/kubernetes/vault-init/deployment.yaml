@@ -1,0 +1,69 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vault-example
+
+---
+apiVersion: v1
+data:
+  service-account-key.json: base64encodedjsonfile=
+kind: Secret
+metadata:
+  namespace: vault-example
+  name: vault-service-account
+type: Opaque
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: vault-example
+  name: example
+  labels:
+    app: example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: example
+  template:
+    metadata:
+      labels:
+        app: example
+    spec:
+      initContainers:
+      - name: vault-init
+        image: teamsnap/vault-init:latest
+        command: ['./vault-init']
+        env:
+        - name: GCLOUD_PROJECT
+          value: project-name-123
+        - name: FUNCTION_IDENTITY
+          value: project-name-123@appspot.gserviceaccount.com
+        - name: VAULT_ADDR
+          value: "https://vault.your-domain.com"
+        - name: VAULT_ROLE
+          value: vault-role-cloud-functions
+        - name: VAULT_SECRET
+          value: test/data/test
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/service-account-key.json
+        volumeMounts:
+        - name: vault-data
+          mountPath: /usr/share/vault/data
+        - name: service-account-key
+          mountPath: /var/secrets/google
+      containers:
+      - name: cat
+        image: busybox:1.28
+        command: ['sh', '-c', 'cat /usr/share/vault/data/secrets; tail -f /dev/null']
+        volumeMounts:
+        - name: vault-data
+          mountPath: /usr/share/vault/data
+      volumes:
+      - name: service-account-key
+        secret:
+          secretName: vault-service-account
+      - name: vault-data
+        emptyDir: {}
