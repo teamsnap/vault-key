@@ -63,7 +63,7 @@ console.log(`secret-key-2 value = ${secretData['secret-engine-2/data/another-sec
 
 ## Google Cloud Auth Method
 
-Because this project uses the [Google Cloud auth method](https://www.vaultproject.io/api/auth/gcp/index.html) for Vault, you'll need to configure a role for the service account you're using. By default, for Google Cloud Functions that will be `<project-id>@appspot.gserviceaccount.com`. You can use the [Terraform example](./exampels/terraform/gcp-auth.tf) to get you started.
+Because this project uses the [Google Cloud auth method](https://www.vaultproject.io/api/auth/gcp/index.html) for Vault, you'll need to configure a role for the service account you're using. By default, for Google Cloud Functions that will be `<project-id>@appspot.gserviceaccount.com`. You can use the [Terraform example](./examples/terraform/gcp-auth.tf) to get you started.
 
 ## Kubernetes
 
