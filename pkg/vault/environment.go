@@ -2,54 +2,59 @@ package vault
 
 import (
 	"context"
-	"github.com/GoogleCloudPlatform/berglas/pkg/berglas"
-	log "github.com/sirupsen/logrus"
-	"go.opencensus.io/trace"
+	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/GoogleCloudPlatform/berglas/pkg/berglas"
+	log "github.com/sirupsen/logrus"
+	"go.opencensus.io/trace"
 )
 
-func getConfigFromEnv(ctx context.Context) {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/getConfigFromEnv")
+func (v *vault) getConfigFromEnv(ctx context.Context) error {
+	if v.traceEnabled {
+		_, span := trace.StartSpan(ctx, fmt.Sprintf("%s/getConfigFromEnv", v.tracePrefix))
 		defer span.End()
 	}
 
-	traceEnabledString := getEnv(ctx, "TRACE_ENABLED", "false")
-	traceEnabled, _ = strconv.ParseBool(traceEnabledString)
-	log.Info("TRACE_ENABLED=" + traceEnabledString)
+	traceEnabledString := v.getEnv(ctx, "TRACE_ENABLED", "false")
+	v.traceEnabled, _ = strconv.ParseBool(traceEnabledString)
+	log.Info(fmt.Sprintf("TRACE_ENABLED=%s", traceEnabledString))
 
-	tracePrefix = getEnv(ctx, "TRACE_PREFIX", "vault")
-	log.Info("TRACE_PREFIX=" + tracePrefix)
-	if tracePrefix == "" {
-		log.Fatal("Error occurred getting TRACE_PREFIX variable from environment.")
+	v.tracePrefix = v.getEnv(ctx, "TRACE_PREFIX", "vault")
+	log.Info(fmt.Sprintf("TRACE_PREFIX=%s", v.tracePrefix))
+	if v.tracePrefix == "" {
+		return errors.New("Error occurred getting TRACE_PREFIX variable from environment")
 	}
 
-	vaultRole = getEnv(ctx, "VAULT_ROLE", "")
-	log.Info("VAULT_ROLE=" + vaultRole)
-	if vaultRole == "" {
-		log.Fatal("You need to set the VAULT_ROLE environment variable")
-	}
-
-	// google injects this env var automatically in gcp environments
-	project = getEnv(ctx, "GCLOUD_PROJECT", "")
-	log.Info("GCLOUD_PROJECT=" + project)
-	if project == "" {
-		log.Fatal("You need to set the GCLOUD_PROJECT environment variable")
+	v.vaultRole = v.getEnv(ctx, "VAULT_ROLE", "")
+	log.Info(fmt.Sprintf("VAULT_ROLE=%s", v.vaultRole))
+	if v.vaultRole == "" {
+		return errors.New("You need to set the VAULT_ROLE environment variable")
 	}
 
 	// google injects this env var automatically in gcp environments
-	serviceAccount = getEnv(ctx, "FUNCTION_IDENTITY", "")
-	log.Info("FUNCTION_IDENTITY=" + serviceAccount)
-	if serviceAccount == "" {
-		log.Fatal("You need to set the FUNCTION_IDENTITY environment variable")
+	v.project = v.getEnv(ctx, "GCLOUD_PROJECT", "")
+	log.Info(fmt.Sprintf("GCLOUD_PROJECT=%s", v.project))
+	if v.project == "" {
+		return errors.New("You need to set the GCLOUD_PROJECT environment variable")
 	}
+
+	// google injects this env var automatically in gcp environments
+	v.serviceAccount = v.getEnv(ctx, "FUNCTION_IDENTITY", "")
+	log.Info(fmt.Sprintf("FUNCTION_IDENTITY=%s", v.serviceAccount))
+	if v.serviceAccount == "" {
+		return errors.New("You need to set the FUNCTION_IDENTITY environment variable")
+	}
+
+	return nil
 }
 
-func getEnv(ctx context.Context, varName, defaultVal string) string {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/getEnv")
+func (v *vault) getEnv(ctx context.Context, varName, defaultVal string) string {
+	if v.traceEnabled {
+		_, span := trace.StartSpan(ctx, fmt.Sprintf("%s/getEnv", v.tracePrefix))
 		defer span.End()
 	}
 
@@ -65,9 +70,9 @@ func getEnv(ctx context.Context, varName, defaultVal string) string {
 // replaces the original environment variable value with the decrypted value,
 // and returns the value as a string. If there's an error fetching the value, it
 // will return an empty string along with the error message.
-func getEncrEnvVar(ctx context.Context, n string) (string, error) {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/getEncrEnvVar")
+func (v *vault) getEncrEnvVar(ctx context.Context, n string) (string, error) {
+	if v.traceEnabled {
+		_, span := trace.StartSpan(ctx, fmt.Sprintf("%s/getEncrEnvVar", v.tracePrefix))
 		defer span.End()
 	}
 
