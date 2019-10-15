@@ -1,6 +1,6 @@
 # Vault integration with GCP for Golang, NodeJS, and Ruby
 
-Vault-Key makes it easy to use Vault with GCP auth. It uses a GCP service account and JSON web tokens to login to Vault securely and without a password. Then it retrieves the secrets you need and makes them available in your code, hassle free.
+Vault-Key makes it easy to use Vault with the [Google Cloud Auth Method](https://www.vaultproject.io/docs/auth/gcp.html). It uses a [GCP service account](https://cloud.google.com/iam/docs/service-accounts) and JSON web tokens to login to Vault securely and without a password. Then it retrieves the secrets you need and makes them available in your code, hassle free.
 
 ## Usage
 
