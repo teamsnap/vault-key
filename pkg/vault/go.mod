@@ -1,4 +1,4 @@
-module github.com/teamsnap/vault/pkg/vault
+module github.com/teamsnap/vault-key/pkg/vault
 
 go 1.13
 

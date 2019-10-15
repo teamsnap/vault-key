@@ -24,7 +24,7 @@ build_all: docker_build clean
 	@env GOOS=$(GOOS) GOARCH=amd64 go build -buildmode c-shared -o vault-gem/lib/native/vault.$(GOOS).so vault.go
 	@echo "Building for Linux..."
 	@docker run -it --rm -v $(BASE_DIR):/app teamsnap/$(APP_NAME)-builder:latest make build
-	@cd vault-gem && gem build vault.gemspec
+	@cd vault-gem && gem build vault-key.gemspec
 
 clean:
 	rm -rf vault-gem/lib/native/vault.*.so

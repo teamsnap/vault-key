@@ -9,5 +9,5 @@ make build_all
 After the gem is built, you can install it with:
 
 ```sh
-gem install ./vault-gem/vault-0.0.0.gem
+gem install ./vault-gem/vault-key-0.0.0.gem
 ```

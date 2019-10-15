@@ -1,4 +1,4 @@
-module github.com/teamsnap/vault/pkg/k8s
+module github.com/teamsnap/vault-key/pkg/k8s
 
 go 1.13
 

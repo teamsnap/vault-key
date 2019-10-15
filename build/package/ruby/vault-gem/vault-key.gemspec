@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name        = 'vault'
+  s.name        = 'vault-key'
   s.version     = '0.0.0'
   s.date        = '2019-10-10'
   s.summary     = "Vault with GCP auth"
