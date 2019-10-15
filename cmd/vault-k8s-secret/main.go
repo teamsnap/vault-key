@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"github.com/teamsnap/vault/pkg/k8s"
-	"github.com/teamsnap/vault/pkg/vault"
+	"github.com/teamsnap/vault-key/pkg/k8s"
+	"github.com/teamsnap/vault-key/pkg/vault"
 	log "github.com/sirupsen/logrus"
 	"os"
 )

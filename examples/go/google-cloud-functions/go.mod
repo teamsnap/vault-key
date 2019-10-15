@@ -11,7 +11,7 @@ require (
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/rogpeppe/go-internal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.4.2
-	github.com/teamsnap/vault/pkg/vault v0.0.1
+	github.com/teamsnap/vault-key/pkg/vault v0.0.1
 	go.opencensus.io v0.22.0
 	golang.org/x/crypto v0.0.0-20190829043050-9756ffdc2472 // indirect
 	golang.org/x/exp v0.0.0-20190829153037-c13cbed26979 // indirect

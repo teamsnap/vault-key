@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/teamsnap/vault/pkg/vault"
+	"github.com/teamsnap/vault-key/pkg/vault"
 )
 
 var env = map[string]map[string]string{}
