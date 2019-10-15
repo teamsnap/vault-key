@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@teamsnap/vault-key": "0.0.1"
+    "@teamsnap/vault": "0.0.1"
   }
 }

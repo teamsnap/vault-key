@@ -1,7 +1,7 @@
 # Usage
 
 ```js
-const vault = require('@teamsnap/vault-key')
+const vault = require('@teamsnap/vault')
 
 const secrets = [
   'secret-engine/data/secret-name',

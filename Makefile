@@ -2,7 +2,7 @@
 SHELL := /bin/bash
 BASE_DIR := $(shell pwd)
 UNAME_S := $(shell uname -s)
-APP_NAME := vault-key
+APP_NAME := vault
 
 export
 # ===================== [END] Global Variable Declaration ==================== #

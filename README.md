@@ -1,7 +1,5 @@
 # Vault integration with GCP for Golang, NodeJS, and Ruby
 
-Vault-Key makes it easy to use Vault with GCP auth. It uses a GCP service account and JSON web tokens to login to Vault without a password. Then it retrieves the secrets you need and makes them available in your code, hassle free.
-
 ## Usage
 
 ### Golang
@@ -12,7 +10,7 @@ package main
 import (
     "context"
     "fmt"
-    "github.com/teamsnap/vault-key/pkg/vault"
+    "github.com/teamsnap/vault/pkg/vault"
 )
 
 var env = map[string]map[string]string{}
@@ -36,7 +34,7 @@ func main() {
 ### NodeJS
 
 ```js
-const vault = require('@teamsnap/vault-key')
+const vault = require('@teamsnap/vault')
 
 const secrets = [
   'secret-engine/data/secret-name',
@@ -53,7 +51,7 @@ console.log(`secret-key-2 value = ${secretData['secret-engine-2/data/another-sec
 ### Ruby
 
 ```ruby
-require 'vault-key'
+require 'vault'
 
 secrets = [
   "secret-engine/data/secret-name",

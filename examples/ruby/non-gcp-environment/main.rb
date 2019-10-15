@@ -1,4 +1,4 @@
-require 'vault-key'
+require 'vault'
 
 secrets = [
   "test/data/test"

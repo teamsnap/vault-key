@@ -4,7 +4,7 @@ package main
 import "C"
 import (
 	"context"
-	"github.com/teamsnap/vault-key/pkg/vault"
+	"github.com/teamsnap/vault/pkg/vault"
 	"fmt"
 	"encoding/json"
 )

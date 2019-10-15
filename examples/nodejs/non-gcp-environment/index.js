@@ -1,4 +1,4 @@
-const vault = require('@teamsnap/vault-key')
+const vault = require('@teamsnap/vault')
 
 const secrets = [
   'test/data/test'

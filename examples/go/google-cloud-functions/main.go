@@ -4,7 +4,7 @@ import (
 	"context"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"fmt"
-	"github.com/teamsnap/vault-key/pkg/vault"
+	"github.com/teamsnap/vault/pkg/vault"
 	"go.opencensus.io/trace"
 	"log"
 )
