@@ -5,7 +5,7 @@ ENV \
  PATH="$PATH:/usr/local/go/bin" \
  GO111MODULE=on
 
-WORKDIR /go/src/github.com/teamsnap/vault
+WORKDIR /go/src/github.com/teamsnap/vault-key
 
 RUN go version \
  && go get -u golang.org/x/lint/golint

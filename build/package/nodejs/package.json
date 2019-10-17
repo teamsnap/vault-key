@@ -1,5 +1,5 @@
 {
-  "name": "@teamsnap/vault",
+  "name": "@teamsnap/vault-key",
   "version": "0.0.1",
   "description": "Vault using GCP Auth",
   "main": "index.js",

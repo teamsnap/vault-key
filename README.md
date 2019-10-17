@@ -10,7 +10,7 @@ package main
 import (
     "context"
     "fmt"
-    "github.com/teamsnap/vault/pkg/vault"
+    "github.com/teamsnap/vault-key/pkg/vault"
 )
 
 var env = map[string]map[string]string{}
@@ -34,7 +34,7 @@ func main() {
 ### NodeJS
 
 ```js
-const vault = require('@teamsnap/vault')
+const vault = require('@teamsnap/vault-key')
 
 const secrets = [
   'secret-engine/data/secret-name',
@@ -51,7 +51,7 @@ console.log(`secret-key-2 value = ${secretData['secret-engine-2/data/another-sec
 ### Ruby
 
 ```ruby
-require 'vault'
+require 'vault-key'
 
 secrets = [
   "secret-engine/data/secret-name",
