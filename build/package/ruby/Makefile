@@ -15,20 +15,19 @@ export
 
 # =========================== [START] Build Targets ========================== #
 build:
-	@env GOOS=$(GOOS) GOARCH=amd64 go build -buildmode c-shared -o vault-gem/lib/native/vault.$(GOOS).so vault.go
+	@env GOOS=$(GOOS) GOARCH=amd64 go build -buildmode c-shared -o lib/native/vault-key.$(GOOS).so vault.go
 
 # on MacOS
 build_all: docker_build clean
 	@echo "Building for MacOS..."
-	@env mkdir -p vault-gem/lib/native
-	@env GOOS=$(GOOS) GOARCH=amd64 go build -buildmode c-shared -o vault-gem/lib/native/vault.$(GOOS).so vault.go
+	@env mkdir -p lib/native
+	@env GOOS=$(GOOS) GOARCH=amd64 go build -buildmode c-shared -o lib/native/vault-key.$(GOOS).so vault.go
 	@echo "Building for Linux..."
 	@docker run -it --rm -v $(BASE_DIR):/app teamsnap/$(APP_NAME)-builder:latest make build
-	@cd vault-gem && gem build vault-key.gemspec
 
 clean:
-	rm -rf vault-gem/lib/native/vault.*.so
-	rm -rf vault-gem/lib/native/vault.*.h
+	rm -rf lib/native/vault.*.so
+	rm -rf lib/native/vault.*.h
 
 docker_build:
 	docker build -f Dockerfile -t teamsnap/$(APP_NAME)-builder:latest .
