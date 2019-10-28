@@ -4,6 +4,6 @@ secrets = [
   "test/data/test"
 ]
 
-secretData = Vault.getSecrets(secrets)
+secretData = VaultKey.getSecrets(secrets)
 
 puts secretData

@@ -14,15 +14,12 @@ Make sure to export the following environment variables (refer to the [main READ
 - `VAULT_ROLE`
 - `GOOGLE_APPLICATION_CREDENTIALS`
 
-This requires you to build the gem before being able to use it.
+This requires you to install the gem before being able to use it.
 
-1. move to the [build/package/ruby](../../../build/package/ruby) directory
-2. `make build_all`
+1. gem install vault-key
 
-After all necessary environment variables are exported, and the gem is built run, move back into `examples/ruby/non-gcp-environment` and run:
+After all necessary environment variables are exported, and the gem is installed, run:
 
 ```sh
-gem install ../../../build/package/ruby/vault-gem/vault-key-0.0.0.gem
-
 ruby main.rb
 ```
