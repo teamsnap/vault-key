@@ -1,33 +1,34 @@
 package vault
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/vault/api"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 	"google.golang.org/api/iam/v1"
-	"time"
 )
 
 // generateSignedJWT returns a signed JWT response using IAM
-func generateSignedJWT(ctx context.Context, iamClient *iam.Service, project, serviceAccount, vaultRole string) *iam.SignJwtResponse {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/generateSignedJWT")
+func (v *vault) generateSignedJWT(iamClient *iam.Service) (*iam.SignJwtResponse, error) {
+	if v.traceEnabled {
+		_, span := trace.StartSpan(v.ctx, fmt.Sprintf("%s/generateSignedJWT", v.tracePrefix))
 		defer span.End()
 	}
 
-	resourceName := fmt.Sprintf("projects/%s/serviceAccounts/%s", project, serviceAccount)
+	resourceName := fmt.Sprintf("projects/%s/serviceAccounts/%s", v.project, v.serviceAccount)
+
 	jwtPayload := map[string]interface{}{
-		"aud": "vault/" + vaultRole,
-		"sub": serviceAccount,
+		"aud": "vault/" + v.vaultRole,
+		"sub": v.serviceAccount,
 		"exp": time.Now().Add(time.Minute * 10).Unix(),
 	}
 
 	payloadBytes, err := json.Marshal(jwtPayload)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("Failed to marshal json Error: %v", err)
 	}
 	signJwtReq := &iam.SignJwtRequest{
 		Payload: string(payloadBytes),
@@ -35,66 +36,62 @@ func generateSignedJWT(ctx context.Context, iamClient *iam.Service, project, ser
 
 	resp, err := iamClient.Projects.ServiceAccounts.SignJwt(resourceName, signJwtReq).Do()
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("Failed to sign jwt: %v", err)
 	}
-
 	log.Debug("Successfully generated signed JWT")
 
-	return resp
+	return resp, nil
 }
 
 // vaultLogin takes signed JWT and sends login request to vault
-func vaultLogin(ctx context.Context, resp *iam.SignJwtResponse, vaultRole string) *api.Secret {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/vaultLogin")
+func (v *vault) vaultLogin(resp *iam.SignJwtResponse) (*api.Secret, error) {
+	if v.traceEnabled {
+		_, span := trace.StartSpan(v.ctx, fmt.Sprintf("%s/vaultLogin", v.tracePrefix))
 		defer span.End()
 	}
 
 	vaultClient, err := api.NewClient(api.DefaultConfig())
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("Failed to create new vault api client: %v", err)
 	}
 
 	vaultResp, err := vaultClient.Logical().Write(
 		"auth/gcp/login",
 		map[string]interface{}{
-			"role": vaultRole,
+			"role": v.vaultRole,
 			"jwt":  resp.SignedJwt,
 		})
-
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("Failed to login to vault with auth/gcp/login: %v", err)
 	}
-
 	log.Debug("Successfully logged into Vault with auth/gcp/login")
 
-	return vaultResp
+	return vaultResp, nil
 }
 
 // getVaultToken uses a service account to get a vault auth token
-func getVaultToken(ctx context.Context, project, serviceAccount, vaultRole string) string {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/getVaultToken")
+func (v *vault) getVaultToken() (string, error) {
+	if v.traceEnabled {
+		_, span := trace.StartSpan(v.ctx, fmt.Sprintf("%s/getVaultToken", v.tracePrefix))
 		defer span.End()
 	}
 
-	var (
-		err       error
-		iamClient *iam.Service
-	)
-
-	iamClient, err = iam.NewService(ctx)
-
+	iamClient, err := iam.NewService(v.ctx)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-
 	log.Debug("Successfully created IAM client")
 
-	resp := generateSignedJWT(ctx, iamClient, project, serviceAccount, vaultRole)
-	vaultResp := vaultLogin(ctx, resp, vaultRole)
+	resp, err := v.generateSignedJWT(iamClient)
+	if err != nil {
+		return "", err
+	}
 
+	vaultResp, err := v.vaultLogin(resp)
+	if err != nil {
+		return "", err
+	}
 	log.Debug("Successfully got vault token:", vaultResp.Auth.ClientToken)
 
-	return vaultResp.Auth.ClientToken
+	return vaultResp.Auth.ClientToken, nil
 }
