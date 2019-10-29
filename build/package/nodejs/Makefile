@@ -20,7 +20,7 @@ build:
 # on MacOS
 build_all: docker_build clean
 	@echo "Building for MacOS..."
-	@env GOOS=$(GOOS) GOARCH=amd64 go build -buildmode c-archive -o vault.$(GOOS).a vault.go
+	@env GOOS=$(GOOS) GOARCH=amd64 go build -buildmode c-archive -o vault.$(GOOS).a main.go
 	@echo "Building for Linux..."
 	@docker run -it --rm -v $(BASE_DIR):/app teamsnap/$(APP_NAME)-builder:latest make build
 
