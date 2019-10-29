@@ -2,23 +2,21 @@ package main
 
 import (
 	"C"
-	"fmt"
 
-	"github.com/teamsnap/vault/pkg/vault/key"
+	"github.com/google/martian/log"
+	"github.com/teamsnap/vault/pkg/vault"
 )
 
-var env = map[string]map[string]string{}
-
 //export GetSecrets
-func GetSecrets(secretNames *C.char) (*C.char, *C.char) {
+func GetSecrets(secretNames *C.char) *C.char {
 	secretNamesStr := C.GoString(secretNames)
 
-	secrets, err := key.Loot(secretNamesStr)
+	secrets, err := vault.Loot(secretNamesStr)
 	if err != nil {
-		return C.CString(""), C.CString(fmt.Sprintf("Error: ", err))
+		log.Fatal(err)
 	}
 
-	return C.CString(string(secrets)), C.CString("")
+	return C.CString(string(secrets))
 }
 
 func main() {}
