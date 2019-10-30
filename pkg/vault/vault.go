@@ -29,7 +29,7 @@ type vault struct {
 	ctx            context.Context
 }
 
-// Loot returns a map with the values of secrets pulled from Vault.
+// Loot returns a map encoded in json with the values of secrets pulled from Vault.
 func Loot(secretNames string) (string, error) {
 	v, err := initVault(context.Background())
 
@@ -51,8 +51,8 @@ func Loot(secretNames string) (string, error) {
 
 }
 
-// getSecrets fills a map with the values of secrets pulled from Vault.
-func (v *vault) getSecrets(ctx context.Context, secretValues *map[string]map[string]string, secretNames []string) error {
+// GetSecrets fills a map with the values of secrets pulled from Vault.
+func (v *vault) GetSecrets(ctx context.Context, secretValues *map[string]map[string]string, secretNames []string) error {
 	var err error
 
 	if v.traceEnabled {
