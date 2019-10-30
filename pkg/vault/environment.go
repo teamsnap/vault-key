@@ -13,37 +13,38 @@ import (
 	"go.opencensus.io/trace"
 )
 
-func (v *vault) getConfigFromEnv(ctx context.Context) error {
+func (v *vault) getConfigFromEnv() error {
 	if v.traceEnabled {
-		_, span := trace.StartSpan(ctx, fmt.Sprintf("%s/getConfigFromEnv", v.tracePrefix))
+		var span *trace.Span
+		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/getConfigFromEnv", v.tracePrefix))
 		defer span.End()
 	}
 
-	traceEnabledString := v.getEnv(ctx, "TRACE_ENABLED", "false")
+	traceEnabledString := v.getEnv("TRACE_ENABLED", "false")
 	v.traceEnabled, _ = strconv.ParseBool(traceEnabledString)
 	log.Info(fmt.Sprintf("TRACE_ENABLED=%s", traceEnabledString))
 
-	v.tracePrefix = v.getEnv(ctx, "TRACE_PREFIX", "vault")
+	v.tracePrefix = v.getEnv("TRACE_PREFIX", "vault")
 	log.Info(fmt.Sprintf("TRACE_PREFIX=%s", v.tracePrefix))
 	if v.tracePrefix == "" {
 		return errors.New("Error occurred getting TRACE_PREFIX variable from environment")
 	}
 
-	v.vaultRole = v.getEnv(ctx, "VAULT_ROLE", "")
+	v.vaultRole = v.getEnv("VAULT_ROLE", "")
 	log.Info(fmt.Sprintf("VAULT_ROLE=%s", v.vaultRole))
 	if v.vaultRole == "" {
 		return errors.New("You need to set the VAULT_ROLE environment variable")
 	}
 
 	// google injects this env var automatically in gcp environments
-	v.project = v.getEnv(ctx, "GCLOUD_PROJECT", "")
+	v.project = v.getEnv("GCLOUD_PROJECT", "")
 	log.Info(fmt.Sprintf("GCLOUD_PROJECT=%s", v.project))
 	if v.project == "" {
 		return errors.New("You need to set the GCLOUD_PROJECT environment variable")
 	}
 
 	// google injects this env var automatically in gcp environments
-	v.serviceAccount = v.getEnv(ctx, "FUNCTION_IDENTITY", "")
+	v.serviceAccount = v.getEnv("FUNCTION_IDENTITY", "")
 	log.Info(fmt.Sprintf("FUNCTION_IDENTITY=%s", v.serviceAccount))
 	if v.serviceAccount == "" {
 		return errors.New("You need to set the FUNCTION_IDENTITY environment variable")
@@ -52,9 +53,10 @@ func (v *vault) getConfigFromEnv(ctx context.Context) error {
 	return nil
 }
 
-func (v *vault) getEnv(ctx context.Context, varName, defaultVal string) string {
+func (v *vault) getEnv(varName, defaultVal string) string {
 	if v.traceEnabled {
-		_, span := trace.StartSpan(ctx, fmt.Sprintf("%s/getEnv", v.tracePrefix))
+		var span *trace.Span
+		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/getEnv", v.tracePrefix))
 		defer span.End()
 	}
 
@@ -72,7 +74,8 @@ func (v *vault) getEnv(ctx context.Context, varName, defaultVal string) string {
 // will return an empty string along with the error message.
 func (v *vault) getEncrEnvVar(ctx context.Context, n string) (string, error) {
 	if v.traceEnabled {
-		_, span := trace.StartSpan(ctx, fmt.Sprintf("%s/getEncrEnvVar", v.tracePrefix))
+		var span *trace.Span
+		v.ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/getEncrEnvVar", v.tracePrefix))
 		defer span.End()
 	}
 

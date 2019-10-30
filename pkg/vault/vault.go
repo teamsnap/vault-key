@@ -57,7 +57,8 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 	v, err := initVault(ctx)
 
 	if v.traceEnabled {
-		_, span := trace.StartSpan(v.ctx, fmt.Sprintf("%s/GetSecrets", v.tracePrefix))
+		var span *trace.Span
+		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/GetSecrets", v.tracePrefix))
 		defer span.End()
 	}
 
@@ -82,6 +83,7 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 
 func initVault(ctx context.Context) (*vault, error) {
 	v := newVault()
+	v.ctx = ctx
 	v.environment = os.Getenv("ENVIRONMENT")
 
 	if v.environment == "production" {
@@ -92,7 +94,7 @@ func initVault(ctx context.Context) (*vault, error) {
 		log.SetLevel(log.TraceLevel)
 	}
 
-	err := v.getConfigFromEnv(ctx)
+	err := v.getConfigFromEnv()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to laod config from environment.  Error: %v ", err)
 	}
@@ -105,7 +107,8 @@ func initVault(ctx context.Context) (*vault, error) {
 // It will exit the process if it fails to initialize.
 func (v *vault) initVaultClient() (*api.Client, error) {
 	if v.traceEnabled {
-		_, span := trace.StartSpan(v.ctx, fmt.Sprintf("%s/InitVaultClient", v.tracePrefix))
+		var span *trace.Span
+		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/InitVaultClient", v.tracePrefix))
 		defer span.End()
 	}
 
@@ -131,7 +134,8 @@ func (v *vault) initVaultClient() (*api.Client, error) {
 func (v *vault) newVaultClient(addr, token string) (*api.Client, error) {
 	var err error
 	if v.traceEnabled {
-		_, span := trace.StartSpan(v.ctx, fmt.Sprintf("%s/NewVaultClient", v.tracePrefix))
+		var span *trace.Span
+		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/NewVaultClient", v.tracePrefix))
 		defer span.End()
 	}
 
@@ -151,7 +155,8 @@ func (v *vault) newVaultClient(addr, token string) (*api.Client, error) {
 // value returned from vault as a string.
 func (v *vault) getSecret(ctx context.Context, c *api.Client, secretName string) (map[string]string, error) {
 	if v.traceEnabled {
-		_, span := trace.StartSpan(v.ctx, fmt.Sprintf("%s/getSecret", v.tracePrefix))
+		var span *trace.Span
+		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/getSecret", v.tracePrefix))
 		defer span.End()
 	}
 
