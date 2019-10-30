@@ -2,11 +2,12 @@ package gcf
 
 import (
 	"context"
-	"contrib.go.opencensus.io/exporter/stackdriver"
 	"fmt"
+	"log"
+
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/teamsnap/vault-key/pkg/vault"
 	"go.opencensus.io/trace"
-	"log"
 )
 
 var env = map[string]map[string]string{}
@@ -40,7 +41,10 @@ func init() {
 
 	createTraceExporter()
 
-	vault.GetSecrets(ctx, &env, envMap)
+	err := vault.GetSecrets(ctx, &env, envMap)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func VaultOnInit(ctx context.Context, m PubSubMessage) error {
