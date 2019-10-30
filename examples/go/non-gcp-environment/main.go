@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/teamsnap/vault-key/pkg/vault"
 )
 
@@ -15,7 +17,10 @@ var envArr = []string{
 func main() {
 	ctx := context.Background()
 
-	vault.GetSecrets(ctx, &env, envArr)
+	err := vault.GetSecrets(ctx, &env, envArr)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Println("Environment Values:", env)
 
