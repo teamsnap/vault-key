@@ -24,7 +24,7 @@ spec:
         spec:
           containers:
           - name: vault
-            image: teamsnap/vault-k8s-secret:latest
+            image: teamsnap/vault-key/vault-k8s-secret:latest
             env:
             - name: GCLOUD_PROJECT
               value: project-name-123
@@ -38,6 +38,12 @@ spec:
               value: test/data/test
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/service-account-key.json
+            - name: CLUSTER_NAME
+              value: my-cluster-name
+            - name: GCLOUD_REGION
+              value: "us-east1"
+            - name: GCLOUD_ZONE
+              value: "us-east1-b"
             volumeMounts:
             - name: service-account-key
               mountPath: /var/secrets/google
