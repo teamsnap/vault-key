@@ -13,50 +13,50 @@ import (
 	"go.opencensus.io/trace"
 )
 
-func (v *vault) getConfigFromEnv() error {
-	if v.traceEnabled {
+func (a *app) getConfigFromEnv() error {
+	if a.traceEnabled {
 		var span *trace.Span
-		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/getConfigFromEnv", v.tracePrefix))
+		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/getConfigFromEnv", a.tracePrefix))
 		defer span.End()
 	}
 
-	traceEnabledString := v.getEnv("TRACE_ENABLED", "false")
-	v.traceEnabled, _ = strconv.ParseBool(traceEnabledString)
+	traceEnabledString := a.getEnv("TRACE_ENABLED", "false")
+	a.traceEnabled, _ = strconv.ParseBool(traceEnabledString)
 	log.Info(fmt.Sprintf("TRACE_ENABLED=%s", traceEnabledString))
 
-	v.tracePrefix = v.getEnv("TRACE_PREFIX", "vault")
-	log.Info(fmt.Sprintf("TRACE_PREFIX=%s", v.tracePrefix))
-	if v.tracePrefix == "" {
+	a.tracePrefix = a.getEnv("TRACE_PREFIX", "vault")
+	log.Info(fmt.Sprintf("TRACE_PREFIX=%s", a.tracePrefix))
+	if a.tracePrefix == "" {
 		return errors.New("Error occurred getting TRACE_PREFIX variable from environment")
 	}
 
-	v.vaultRole = v.getEnv("VAULT_ROLE", "")
-	log.Info(fmt.Sprintf("VAULT_ROLE=%s", v.vaultRole))
-	if v.vaultRole == "" {
+	a.vaultRole = a.getEnv("VAULT_ROLE", "")
+	log.Info(fmt.Sprintf("VAULT_ROLE=%s", a.vaultRole))
+	if a.vaultRole == "" {
 		return errors.New("You need to set the VAULT_ROLE environment variable")
 	}
 
 	// google injects this env var automatically in gcp environments
-	v.project = v.getEnv("GCLOUD_PROJECT", "")
-	log.Info(fmt.Sprintf("GCLOUD_PROJECT=%s", v.project))
-	if v.project == "" {
+	a.project = a.getEnv("GCLOUD_PROJECT", "")
+	log.Info(fmt.Sprintf("GCLOUD_PROJECT=%s", a.project))
+	if a.project == "" {
 		return errors.New("You need to set the GCLOUD_PROJECT environment variable")
 	}
 
 	// google injects this env var automatically in gcp environments
-	v.serviceAccount = v.getEnv("FUNCTION_IDENTITY", "")
-	log.Info(fmt.Sprintf("FUNCTION_IDENTITY=%s", v.serviceAccount))
-	if v.serviceAccount == "" {
+	a.serviceAccount = a.getEnv("FUNCTION_IDENTITY", "")
+	log.Info(fmt.Sprintf("FUNCTION_IDENTITY=%s", a.serviceAccount))
+	if a.serviceAccount == "" {
 		return errors.New("You need to set the FUNCTION_IDENTITY environment variable")
 	}
 
 	return nil
 }
 
-func (v *vault) getEnv(varName, defaultVal string) string {
-	if v.traceEnabled {
+func (a *app) getEnv(varName, defaultVal string) string {
+	if a.traceEnabled {
 		var span *trace.Span
-		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/getEnv", v.tracePrefix))
+		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/getEnv", a.tracePrefix))
 		defer span.End()
 	}
 
@@ -72,10 +72,10 @@ func (v *vault) getEnv(varName, defaultVal string) string {
 // replaces the original environment variable value with the decrypted value,
 // and returns the value as a string. If there's an error fetching the value, it
 // will return an empty string along with the error message.
-func (v *vault) getEncrEnvVar(ctx context.Context, n string) (string, error) {
-	if v.traceEnabled {
+func (a *app) getEncrEnvVar(ctx context.Context, n string) (string, error) {
+	if a.traceEnabled {
 		var span *trace.Span
-		v.ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/getEncrEnvVar", v.tracePrefix))
+		a.ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/getEncrEnvVar", a.tracePrefix))
 		defer span.End()
 	}
 

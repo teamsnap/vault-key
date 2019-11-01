@@ -12,12 +12,13 @@ import (
 	"go.opencensus.io/trace"
 )
 
-func newVault() *vault {
-	v := &vault{}
-	return v
+func newApp() *app {
+	a := &app{}
+	return a
 }
 
-type vault struct {
+// Vaults is the thing
+type app struct {
 	traceEnabled   bool
 	tracePrefix    string
 	project        string
@@ -54,15 +55,15 @@ func Loot(secretNames string) (string, error) {
 // GetSecrets fills a map with the values of secrets pulled from Vault.
 func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string, secretNames []string) error {
 	var err error
-	v, err := initVault(ctx)
+	a, err := initVault(ctx)
 
-	if v.traceEnabled {
+	if a.traceEnabled {
 		var span *trace.Span
-		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/GetSecrets", v.tracePrefix))
+		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/GetSecrets", a.tracePrefix))
 		defer span.End()
 	}
 
-	v.client, err = v.initVaultClient()
+	a.client, err = a.initVaultClient()
 	if err != nil {
 		return err
 	}
@@ -70,7 +71,7 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 	for _, secretName := range secretNames {
 		log.Debug("secret, err := GetSecret(c, " + secretName + ")")
 
-		secret, err := v.getSecret(ctx, v.client, secretName)
+		secret, err := a.getSecret(ctx, a.client, secretName)
 		if err != nil {
 			return fmt.Errorf("Error getting secret: %v", err)
 		}
@@ -81,12 +82,12 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 	return nil
 }
 
-func initVault(ctx context.Context) (*vault, error) {
-	v := newVault()
-	v.ctx = ctx
-	v.environment = os.Getenv("ENVIRONMENT")
+func initVault(ctx context.Context) (*app, error) {
+	a := newApp()
+	a.ctx = ctx
+	a.environment = os.Getenv("ENVIRONMENT")
 
-	if v.environment == "production" {
+	if a.environment == "production" {
 		log.SetFormatter(&log.JSONFormatter{})
 		log.SetLevel(log.WarnLevel)
 	} else {
@@ -94,69 +95,69 @@ func initVault(ctx context.Context) (*vault, error) {
 		log.SetLevel(log.TraceLevel)
 	}
 
-	err := v.getConfigFromEnv()
+	err := a.getConfigFromEnv()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to laod config from environment.  Error: %v ", err)
 	}
 
-	return v, nil
+	return a, nil
 }
 
 // initVaultClient takes context and a vault role and returns an initialized Vault
 // client using the value in the "VAULT_ADDR" env var.
 // It will exit the process if it fails to initialize.
-func (v *vault) initVaultClient() (*api.Client, error) {
-	if v.traceEnabled {
+func (a *app) initVaultClient() (*api.Client, error) {
+	if a.traceEnabled {
 		var span *trace.Span
-		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/InitVaultClient", v.tracePrefix))
+		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/InitVaultClient", a.tracePrefix))
 		defer span.End()
 	}
 
-	vaultAddr, err := v.getEncrEnvVar(v.ctx, "VAULT_ADDR")
+	vaultAddr, err := a.getEncrEnvVar(a.ctx, "VAULT_ADDR")
 	if err != nil {
 		return nil, fmt.Errorf("Error getting vault address: %v", err)
 	}
 
-	vaultToken, err := v.getVaultToken()
+	vaultToken, err := a.getVaultToken()
 	if err != nil {
 		return nil, err
 	}
 
-	v.client, err = v.newVaultClient(vaultAddr, vaultToken)
+	a.client, err = a.newVaultClient(vaultAddr, vaultToken)
 	if err != nil {
 		return nil, err
 	}
 
-	return v.client, nil
+	return a.client, nil
 }
 
 // newVaultClient returns a configured vault api client
-func (v *vault) newVaultClient(addr, token string) (*api.Client, error) {
+func (a *app) newVaultClient(addr, token string) (*api.Client, error) {
 	var err error
-	if v.traceEnabled {
+	if a.traceEnabled {
 		var span *trace.Span
-		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/NewVaultClient", v.tracePrefix))
+		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/NewVaultClient", a.tracePrefix))
 		defer span.End()
 	}
 
-	v.client, err = api.NewClient(&api.Config{
+	a.client, err = api.NewClient(&api.Config{
 		Address: addr,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("Error initializing vault client: %v", err)
 	}
 
-	v.client.SetToken(token)
+	a.client.SetToken(token)
 
-	return v.client, nil
+	return a.client, nil
 }
 
 // getSecret takes a vault client, key name, and data name, and returns the
 // value returned from vault as a string.
-func (v *vault) getSecret(ctx context.Context, c *api.Client, secretName string) (map[string]string, error) {
-	if v.traceEnabled {
+func (a *app) getSecret(ctx context.Context, c *api.Client, secretName string) (map[string]string, error) {
+	if a.traceEnabled {
 		var span *trace.Span
-		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/getSecret", v.tracePrefix))
+		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/getSecret", a.tracePrefix))
 		defer span.End()
 	}
 

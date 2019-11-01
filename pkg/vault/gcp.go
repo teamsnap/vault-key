@@ -12,18 +12,18 @@ import (
 )
 
 // generateSignedJWT returns a signed JWT response using IAM
-func (v *vault) generateSignedJWT(iamClient *iam.Service) (*iam.SignJwtResponse, error) {
-	if v.traceEnabled {
+func (a *app) generateSignedJWT(iamClient *iam.Service) (*iam.SignJwtResponse, error) {
+	if a.traceEnabled {
 		var span *trace.Span
-		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/generateSignedJWT", v.tracePrefix))
+		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/generateSignedJWT", a.tracePrefix))
 		defer span.End()
 	}
 
-	resourceName := fmt.Sprintf("projects/%s/serviceAccounts/%s", v.project, v.serviceAccount)
+	resourceName := fmt.Sprintf("projects/%s/serviceAccounts/%s", a.project, a.serviceAccount)
 
 	jwtPayload := map[string]interface{}{
-		"aud": "vault/" + v.vaultRole,
-		"sub": v.serviceAccount,
+		"aud": "vault/" + a.vaultRole,
+		"sub": a.serviceAccount,
 		"exp": time.Now().Add(time.Minute * 10).Unix(),
 	}
 
@@ -45,10 +45,10 @@ func (v *vault) generateSignedJWT(iamClient *iam.Service) (*iam.SignJwtResponse,
 }
 
 // vaultLogin takes signed JWT and sends login request to vault
-func (v *vault) vaultLogin(resp *iam.SignJwtResponse) (*api.Secret, error) {
-	if v.traceEnabled {
+func (a *app) vaultLogin(resp *iam.SignJwtResponse) (*api.Secret, error) {
+	if a.traceEnabled {
 		var span *trace.Span
-		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/vaultLogin", v.tracePrefix))
+		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/vaultLogin", a.tracePrefix))
 		defer span.End()
 	}
 
@@ -60,7 +60,7 @@ func (v *vault) vaultLogin(resp *iam.SignJwtResponse) (*api.Secret, error) {
 	vaultResp, err := vaultClient.Logical().Write(
 		"auth/gcp/login",
 		map[string]interface{}{
-			"role": v.vaultRole,
+			"role": a.vaultRole,
 			"jwt":  resp.SignedJwt,
 		})
 	if err != nil {
@@ -72,25 +72,25 @@ func (v *vault) vaultLogin(resp *iam.SignJwtResponse) (*api.Secret, error) {
 }
 
 // getVaultToken uses a service account to get a vault auth token
-func (v *vault) getVaultToken() (string, error) {
-	if v.traceEnabled {
+func (a *app) getVaultToken() (string, error) {
+	if a.traceEnabled {
 		var span *trace.Span
-		v.ctx, span = trace.StartSpan(v.ctx, fmt.Sprintf("%s/getVaultToken", v.tracePrefix))
+		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/getVaultToken", a.tracePrefix))
 		defer span.End()
 	}
 
-	iamClient, err := iam.NewService(v.ctx)
+	iamClient, err := iam.NewService(a.ctx)
 	if err != nil {
 		return "", err
 	}
 	log.Debug("Successfully created IAM client")
 
-	resp, err := v.generateSignedJWT(iamClient)
+	resp, err := a.generateSignedJWT(iamClient)
 	if err != nil {
 		return "", err
 	}
 
-	vaultResp, err := v.vaultLogin(resp)
+	vaultResp, err := a.vaultLogin(resp)
 	if err != nil {
 		return "", err
 	}
