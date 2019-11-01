@@ -12,23 +12,6 @@ import (
 	"go.opencensus.io/trace"
 )
 
-func newApp() *app {
-	a := &app{}
-	return a
-}
-
-// Vaults is the thing
-type app struct {
-	traceEnabled   bool
-	tracePrefix    string
-	project        string
-	serviceAccount string
-	vaultRole      string
-	environment    string
-	client         *api.Client
-	ctx            context.Context
-}
-
 // Loot returns a map encoded in json with the values of secrets pulled from Vault.
 func Loot(secretNames string) (string, error) {
 	var envArr []string
