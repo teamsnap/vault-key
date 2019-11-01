@@ -1,100 +1,92 @@
 package vault
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/vault/api"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 	"google.golang.org/api/iam/v1"
-	"time"
 )
 
-// generateSignedJWT returns a signed JWT response using IAM
-func generateSignedJWT(ctx context.Context, iamClient *iam.Service, project, serviceAccount, vaultRole string) *iam.SignJwtResponse {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/generateSignedJWT")
+// getVaultToken uses a service account to get a vault auth token
+func getVaultToken(c *vaultClient) (string, error) {
+	if c.traceEnabled {
+		_, span := trace.StartSpan(c.ctx, c.tracePrefix+"/getVaultToken")
 		defer span.End()
 	}
 
-	resourceName := fmt.Sprintf("projects/%s/serviceAccounts/%s", project, serviceAccount)
+	iamClient, err := iam.NewService(c.ctx)
+	if err != nil {
+		return "", fmt.Errorf("Error getting vault token: %v", err)
+	}
+	log.Debug("Successfully created IAM client")
+
+	resp, err := generateSignedJWT(c, iamClient)
+	if err != nil {
+		return "", err
+	}
+	log.Debug("Successfully generated signed JWT")
+
+	vaultResp, err := vaultLogin(c, resp)
+	if err != nil {
+		return "", err
+	}
+	log.Debug("Successfully logged into Vault with auth/gcp/login")
+
+	return vaultResp.Auth.ClientToken, nil
+}
+
+// generateSignedJWT returns a signed JWT response using IAM
+func generateSignedJWT(c *vaultClient, iamClient *iam.Service) (*iam.SignJwtResponse, error) {
+	if c.traceEnabled {
+		_, span := trace.StartSpan(c.ctx, c.tracePrefix+"/generateSignedJWT")
+		defer span.End()
+	}
+
+	resourceName := fmt.Sprintf("projects/%s/serviceAccounts/%s", c.project, c.serviceAccount)
 	jwtPayload := map[string]interface{}{
-		"aud": "vault/" + vaultRole,
-		"sub": serviceAccount,
+		"aud": "vault/" + c.vaultRole,
+		"sub": c.serviceAccount,
 		"exp": time.Now().Add(time.Minute * 10).Unix(),
 	}
 
 	payloadBytes, err := json.Marshal(jwtPayload)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("Error marshaling payload: %v", err)
 	}
+
 	signJwtReq := &iam.SignJwtRequest{
 		Payload: string(payloadBytes),
 	}
 
 	resp, err := iamClient.Projects.ServiceAccounts.SignJwt(resourceName, signJwtReq).Do()
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("Error sigining jwt: %v", err)
 	}
 
-	log.Debug("Successfully generated signed JWT")
-
-	return resp
+	return resp, nil
 }
 
 // vaultLogin takes signed JWT and sends login request to vault
-func vaultLogin(ctx context.Context, resp *iam.SignJwtResponse, vaultRole string) *api.Secret {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/vaultLogin")
+func vaultLogin(c *vaultClient, resp *iam.SignJwtResponse) (vaultResp *api.Secret, err error) {
+	if c.traceEnabled {
+		_, span := trace.StartSpan(c.ctx, c.tracePrefix+"/vaultLogin")
 		defer span.End()
 	}
 
-	vaultClient, err := api.NewClient(api.DefaultConfig())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	vaultResp, err := vaultClient.Logical().Write(
+	vaultResp, err = c.client.Logical().Write(
 		"auth/gcp/login",
 		map[string]interface{}{
-			"role": vaultRole,
+			"role": c.vaultRole,
 			"jwt":  resp.SignedJwt,
 		})
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("Error getting logging into vault:%v", err)
 	}
 
-	log.Debug("Successfully logged into Vault with auth/gcp/login")
-
-	return vaultResp
-}
-
-// getVaultToken uses a service account to get a vault auth token
-func getVaultToken(ctx context.Context, project, serviceAccount, vaultRole string) string {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/getVaultToken")
-		defer span.End()
-	}
-
-	var (
-		err       error
-		iamClient *iam.Service
-	)
-
-	iamClient, err = iam.NewService(ctx)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Debug("Successfully created IAM client")
-
-	resp := generateSignedJWT(ctx, iamClient, project, serviceAccount, vaultRole)
-	vaultResp := vaultLogin(ctx, resp, vaultRole)
-
-	log.Debug("Successfully got vault token:", vaultResp.Auth.ClientToken)
-
-	return vaultResp.Auth.ClientToken
+	return vaultResp, nil
 }
