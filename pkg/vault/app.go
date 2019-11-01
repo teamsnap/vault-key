@@ -6,13 +6,13 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-func newApp() *app {
-	a := &app{}
+func newApp() *App {
+	a := &App{}
 	return a
 }
 
-// Vaults is the thing
-type app struct {
+// app is the thing
+type App struct {
 	traceEnabled   bool
 	tracePrefix    string
 	project        string

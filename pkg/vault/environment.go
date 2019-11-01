@@ -13,7 +13,7 @@ import (
 	"go.opencensus.io/trace"
 )
 
-func (a *app) getConfigFromEnv() error {
+func (a *App) getConfigFromEnv() error {
 	if a.traceEnabled {
 		var span *trace.Span
 		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/getConfigFromEnv", a.tracePrefix))
@@ -53,7 +53,7 @@ func (a *app) getConfigFromEnv() error {
 	return nil
 }
 
-func (a *app) getEnv(varName, defaultVal string) string {
+func (a *App) getEnv(varName, defaultVal string) string {
 	if a.traceEnabled {
 		var span *trace.Span
 		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/getEnv", a.tracePrefix))
@@ -72,7 +72,7 @@ func (a *app) getEnv(varName, defaultVal string) string {
 // replaces the original environment variable value with the decrypted value,
 // and returns the value as a string. If there's an error fetching the value, it
 // will return an empty string along with the error message.
-func (a *app) getEncrEnvVar(ctx context.Context, n string) (string, error) {
+func (a *App) getEncrEnvVar(ctx context.Context, n string) (string, error) {
 	if a.traceEnabled {
 		var span *trace.Span
 		a.ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/getEncrEnvVar", a.tracePrefix))

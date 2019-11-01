@@ -12,7 +12,7 @@ import (
 )
 
 // generateSignedJWT returns a signed JWT response using IAM
-func (a *app) generateSignedJWT(iamClient *iam.Service) (*iam.SignJwtResponse, error) {
+func (a *App) generateSignedJWT(iamClient *iam.Service) (*iam.SignJwtResponse, error) {
 	if a.traceEnabled {
 		var span *trace.Span
 		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/generateSignedJWT", a.tracePrefix))
@@ -45,7 +45,7 @@ func (a *app) generateSignedJWT(iamClient *iam.Service) (*iam.SignJwtResponse, e
 }
 
 // vaultLogin takes signed JWT and sends login request to vault
-func (a *app) vaultLogin(resp *iam.SignJwtResponse) (*api.Secret, error) {
+func (a *App) vaultLogin(resp *iam.SignJwtResponse) (*api.Secret, error) {
 	if a.traceEnabled {
 		var span *trace.Span
 		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/vaultLogin", a.tracePrefix))
@@ -72,7 +72,7 @@ func (a *app) vaultLogin(resp *iam.SignJwtResponse) (*api.Secret, error) {
 }
 
 // getVaultToken uses a service account to get a vault auth token
-func (a *app) getVaultToken() (string, error) {
+func (a *App) getVaultToken() (string, error) {
 	if a.traceEnabled {
 		var span *trace.Span
 		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/getVaultToken", a.tracePrefix))

@@ -65,7 +65,7 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 	return nil
 }
 
-func initVault(ctx context.Context) (*app, error) {
+func initVault(ctx context.Context) (*App, error) {
 	a := newApp()
 	a.ctx = ctx
 	a.environment = os.Getenv("ENVIRONMENT")
@@ -89,7 +89,7 @@ func initVault(ctx context.Context) (*app, error) {
 // initVaultClient takes context and a vault role and returns an initialized Vault
 // client using the value in the "VAULT_ADDR" env var.
 // It will exit the process if it fails to initialize.
-func (a *app) initVaultClient() (*api.Client, error) {
+func (a *App) initVaultClient() (*api.Client, error) {
 	if a.traceEnabled {
 		var span *trace.Span
 		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/InitVaultClient", a.tracePrefix))
@@ -115,7 +115,7 @@ func (a *app) initVaultClient() (*api.Client, error) {
 }
 
 // newVaultClient returns a configured vault api client
-func (a *app) newVaultClient(addr, token string) (*api.Client, error) {
+func (a *App) newVaultClient(addr, token string) (*api.Client, error) {
 	var err error
 	if a.traceEnabled {
 		var span *trace.Span
@@ -137,7 +137,7 @@ func (a *app) newVaultClient(addr, token string) (*api.Client, error) {
 
 // getSecret takes a vault client, key name, and data name, and returns the
 // value returned from vault as a string.
-func (a *app) getSecret(ctx context.Context, c *api.Client, secretName string) (map[string]string, error) {
+func (a *App) getSecret(ctx context.Context, c *api.Client, secretName string) (map[string]string, error) {
 	if a.traceEnabled {
 		var span *trace.Span
 		a.ctx, span = trace.StartSpan(a.ctx, fmt.Sprintf("%s/getSecret", a.tracePrefix))
