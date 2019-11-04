@@ -22,7 +22,7 @@ func Loot(secretNames string) (string, error) {
 		return "", fmt.Errorf("Failed to unmarshall secrets as json.  Error: %v", err)
 	}
 
-	err = GetSecrets(context.Background(), &env, envArr)
+	env, err = GetSecrets(context.Background(), env, envArr)
 	if err != nil {
 		return "", err
 	}
@@ -36,9 +36,12 @@ func Loot(secretNames string) (string, error) {
 }
 
 // GetSecrets fills a map with the values of secrets pulled from Vault.
-func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string, secretNames []string) error {
-	var err error
-	a, err := initVault(ctx)
+func GetSecrets(ctx context.Context, secretValues map[string]map[string]string, secretNames []string) (map[string]map[string]string, error) {
+	a := newApp()
+	a.ctx = ctx
+	a.environment = os.Getenv("ENVIRONMENT")
+
+	err := a.initVault(a.ctx)
 
 	if a.traceEnabled {
 		var span *trace.Span
@@ -48,7 +51,7 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 
 	a.client, err = a.initVaultClient()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for _, secretName := range secretNames {
@@ -56,19 +59,16 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 
 		secret, err := a.getSecret(ctx, a.client, secretName)
 		if err != nil {
-			return fmt.Errorf("Error getting secret: %v", err)
+			return nil, fmt.Errorf("Error getting secret: %v", err)
 		}
 
-		(*secretValues)[secretName] = secret
+		(secretValues)[secretName] = secret
 	}
 
-	return nil
+	return secretValues, nil
 }
 
-func initVault(ctx context.Context) (*App, error) {
-	a := newApp()
-	a.ctx = ctx
-	a.environment = os.Getenv("ENVIRONMENT")
+func (a *App) initVault(ctx context.Context) error {
 
 	if a.environment == "production" {
 		log.SetFormatter(&log.JSONFormatter{})
@@ -80,10 +80,10 @@ func initVault(ctx context.Context) (*App, error) {
 
 	err := a.getConfigFromEnv()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to laod config from environment.  Error: %v ", err)
+		return fmt.Errorf("Unable to laod config from environment.  Error: %v ", err)
 	}
 
-	return a, nil
+	return nil
 }
 
 // initVaultClient takes context and a vault role and returns an initialized Vault
