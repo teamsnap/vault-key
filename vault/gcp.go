@@ -20,7 +20,7 @@ func getVaultToken(c *vaultClient) (string, error) {
 
 	iamClient, err := iam.NewService(c.ctx)
 	if err != nil {
-		return "", fmt.Errorf("Error getting vault taoken: %v", err)
+		return "", fmt.Errorf("Error getting vault token: %v", err)
 	}
 	log.Debug("Successfully created IAM client")
 
