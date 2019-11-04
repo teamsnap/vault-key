@@ -34,7 +34,8 @@ func (c *vaultClient) loadVaultEnvironment() error {
 	c.traceEnabled, _ = strconv.ParseBool(traceEnabledString)
 
 	if c.traceEnabled {
-		_, span := trace.StartSpan(c.ctx, c.tracePrefix+"/getConfigFromEnv")
+		var span *trace.Span
+		c.ctx, span = trace.StartSpan(c.ctx, fmt.Sprintf("%s/loadVaultEnvironment", c.tracePrefix))
 		defer span.End()
 	}
 
@@ -70,7 +71,8 @@ func (c *vaultClient) loadVaultEnvironment() error {
 // It will exit the process if it fails to initialize.
 func (c *vaultClient) initClient() (err error) {
 	if c.traceEnabled {
-		_, span := trace.StartSpan(c.ctx, c.tracePrefix+"/InitVaultClient")
+		var span *trace.Span
+		c.ctx, span = trace.StartSpan(c.ctx, fmt.Sprintf("%s/initClient", c.tracePrefix))
 		defer span.End()
 	}
 
@@ -102,7 +104,8 @@ func (c *vaultClient) initClient() (err error) {
 // value returned from vault as a string.
 func (c *vaultClient) getSecretFromVault(secretName string) (map[string]string, error) {
 	if c.traceEnabled {
-		_, span := trace.StartSpan(c.ctx, c.tracePrefix+"/GetSecret")
+		var span *trace.Span
+		c.ctx, span = trace.StartSpan(c.ctx, fmt.Sprintf("%s/getSecretFromVault", c.tracePrefix))
 		defer span.End()
 	}
 
@@ -110,13 +113,13 @@ func (c *vaultClient) getSecretFromVault(secretName string) (map[string]string, 
 
 	secretValues, err := c.client.Logical().Read(secretName)
 	if err != nil {
-		log.Error("Error reading secret from Vault:", err)
-		return secretMap, errors.New("error reading secret from Vault for " + secretName + ": " + err.Error())
+		log.Error(fmt.Sprintf("Error reading secret from Vault: %v", err))
+		return secretMap, fmt.Errorf("error reading secret from Vault for %s", secretName)
 	}
 
 	if secretValues == nil {
 		log.Error("Secret values returned from Vault are <nil> for " + secretName)
-		return secretMap, errors.New("secret values returned from Vault are <nil> for " + secretName)
+		return secretMap, fmt.Errorf("secret values returned from Vault are <nil> for %s", secretName)
 	}
 
 	// https://stackoverflow.com/questions/26975880/convert-mapinterface-interface-to-mapstringstring
@@ -130,5 +133,5 @@ func (c *vaultClient) getSecretFromVault(secretName string) (map[string]string, 
 	}
 
 	log.Errorf("%T %#v\n", secretValues.Data["data"], secretValues.Data["data"])
-	return secretMap, errors.New("failed to convert secret data from Vault to a string for " + secretName)
+	return secretMap, fmt.Errorf("failed to convert secret data from Vault to a string for %s", secretName)
 }

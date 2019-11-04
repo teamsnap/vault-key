@@ -37,12 +37,13 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 	}
 
 	if c.traceEnabled {
-		_, span := trace.StartSpan(ctx, c.tracePrefix+"/GetSecrets")
+		var span *trace.Span
+		c.ctx, span = trace.StartSpan(c.ctx, fmt.Sprintf("%s/GetSecrets", c.tracePrefix))
 		defer span.End()
 	}
 
 	for _, secretName := range secretNames {
-		log.Debug(fmt.Sprintf("secret, err := GetSecret(c, %s)", secretName))
+		log.Debug(fmt.Sprintf("secret= %s", secretNames))
 
 		secret, err := c.getSecretFromVault(secretName)
 		if err != nil {

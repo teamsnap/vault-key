@@ -14,7 +14,8 @@ import (
 // getVaultToken uses a service account to get a vault auth token
 func getVaultToken(c *vaultClient) (string, error) {
 	if c.traceEnabled {
-		_, span := trace.StartSpan(c.ctx, c.tracePrefix+"/getVaultToken")
+		var span *trace.Span
+		c.ctx, span = trace.StartSpan(c.ctx, fmt.Sprintf("%s/getVaultToken", c.tracePrefix))
 		defer span.End()
 	}
 
@@ -42,7 +43,8 @@ func getVaultToken(c *vaultClient) (string, error) {
 // generateSignedJWT returns a signed JWT response using IAM
 func generateSignedJWT(c *vaultClient, iamClient *iam.Service) (*iam.SignJwtResponse, error) {
 	if c.traceEnabled {
-		_, span := trace.StartSpan(c.ctx, c.tracePrefix+"/generateSignedJWT")
+		var span *trace.Span
+		c.ctx, span = trace.StartSpan(c.ctx, fmt.Sprintf("%s/generateSignedJWT", c.tracePrefix))
 		defer span.End()
 	}
 
@@ -73,7 +75,8 @@ func generateSignedJWT(c *vaultClient, iamClient *iam.Service) (*iam.SignJwtResp
 // vaultLogin takes signed JWT and sends login request to vault
 func vaultLogin(c *vaultClient, resp *iam.SignJwtResponse) (vaultResp *api.Secret, err error) {
 	if c.traceEnabled {
-		_, span := trace.StartSpan(c.ctx, c.tracePrefix+"/vaultLogin")
+		var span *trace.Span
+		c.ctx, span = trace.StartSpan(c.ctx, fmt.Sprintf("%s/vaultLogin", c.tracePrefix))
 		defer span.End()
 	}
 
