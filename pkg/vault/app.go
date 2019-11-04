@@ -11,7 +11,7 @@ func newApp() *App {
 	return a
 }
 
-// app is the thing
+// App is the thing
 type App struct {
 	traceEnabled   bool
 	tracePrefix    string

@@ -22,7 +22,7 @@ func Loot(secretNames string) (string, error) {
 		return "", fmt.Errorf("Failed to unmarshall secrets as json.  Error: %v", err)
 	}
 
-	env, err = GetSecrets(context.Background(), env, envArr)
+	err = GetSecrets(context.Background(), &env, envArr)
 	if err != nil {
 		return "", err
 	}
@@ -36,7 +36,7 @@ func Loot(secretNames string) (string, error) {
 }
 
 // GetSecrets fills a map with the values of secrets pulled from Vault.
-func GetSecrets(ctx context.Context, secretValues map[string]map[string]string, secretNames []string) (map[string]map[string]string, error) {
+func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string, secretNames []string) error {
 	a := newApp()
 	a.ctx = ctx
 	a.environment = os.Getenv("ENVIRONMENT")
@@ -51,7 +51,7 @@ func GetSecrets(ctx context.Context, secretValues map[string]map[string]string, 
 
 	a.client, err = a.initVaultClient()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	for _, secretName := range secretNames {
@@ -59,13 +59,13 @@ func GetSecrets(ctx context.Context, secretValues map[string]map[string]string, 
 
 		secret, err := a.getSecret(ctx, a.client, secretName)
 		if err != nil {
-			return nil, fmt.Errorf("Error getting secret: %v", err)
+			return fmt.Errorf("Error getting secret: %v", err)
 		}
 
-		(secretValues)[secretName] = secret
+		(*secretValues)[secretName] = secret
 	}
 
-	return secretValues, nil
+	return nil
 }
 
 func (a *App) initVault(ctx context.Context) error {
