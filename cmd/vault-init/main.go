@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-var env = map[string]string{}
+var env = map[string]map[string]string{}
 
 // writeStringToFile takes a file path and a content string and writes the
 // content to a file with the given path

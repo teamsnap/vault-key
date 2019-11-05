@@ -19,6 +19,12 @@ func main() {
 		log.Fatal("You need to set VAULT_SECRET environment variable.")
 	}
 
+	k8sNamespace := os.Getenv("K8S_NAMESPACE")
+	log.Info("K8S_NAMESPACE=" + k8sNamespace)
+	if k8sNamespace == "" {
+		log.Fatal("You need to set K8S_NAMESPACE environment variable.")
+	}
+
 	var envArr = []string{
 		vaultSecret,
 	}
@@ -27,6 +33,7 @@ func main() {
 
 	k8sSecret := &k8s.Secret{
 		Secrets: env[vaultSecret],
+		Namespace: k8sNamespace,
 	}
 
 	k8s.ApplySecret(k8sSecret)

@@ -34,7 +34,7 @@ spec:
     spec:
       initContainers:
       - name: vault-init
-        image: teamsnap/vault-init:latest
+        image: teamsnap/vault-key/vault-init:latest
         command: ['./vault-init']
         env:
         - name: GCLOUD_PROJECT

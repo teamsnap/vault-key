@@ -10,6 +10,12 @@ export
 # =========================== [START] Build Targets ========================== #
 docker_build:
 	@docker build -f $(BASE_DIR)/build/package/Dockerfile -t teamsnap/$(APP_NAME):latest .
+
+docker_build_vault_init:
+	@docker build -f $(BASE_DIR)/cmd/vault-init/Dockerfile -t teamsnap/$(APP_NAME)/vault-init:latest $(BASE_DIR)/cmd/vault-init
+
+docker_build_vault_k8s_secret:
+	@docker build -f $(BASE_DIR)/cmd/vault-k8s-secret/Dockerfile -t teamsnap/$(APP_NAME)/vault-k8s-secret:latest $(BASE_DIR)/cmd/vault-k8s-secret
 # ============================ [END] Build Targets =========================== #
 
 # ============================ [START] Run Targets =========================== #
@@ -21,15 +27,14 @@ docker_run:
 
 # ======================== [START] Formatting Targets ======================== #
 gofmt:
-	@go fmt github.com/teamsnap/$(APP_NAME)/...
+	@go fmt github.com/teamsnap/$(APP_NAME)/cmd/...
+	@go fmt github.com/teamsnap/$(APP_NAME)/pkg/...
 
 golint:
-	@golint github.com/teamsnap/$(APP_NAME)/...
+	@golint github.com/teamsnap/$(APP_NAME)/cmd/...
+	@golint github.com/teamsnap/$(APP_NAME)/pkg/...
 
-govet:
-	@go vet github.com/teamsnap/$(APP_NAME)/...
-
-lint: gofmt golint govet
+lint: gofmt golint
 # ========================= [END] Formatting Targets ========================= #
 
 # ============================ [START] Test Targets ========================== #

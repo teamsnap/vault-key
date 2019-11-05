@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"strings"
 	"text/template"
 )
 
@@ -22,7 +21,7 @@ export {{ $key }}={{ $value }}
 // GenerateDotEnv parses the .env template with passed in variables
 // and returns a string
 func GenerateDotEnv(dotenvVars DotEnvVariables) string {
-	t, err := template.New("dotenv").Parse(inventory)
+	t, err := template.New("dotenv").Parse(dotEnv)
 	if err != nil {
 		panic(err)
 	}

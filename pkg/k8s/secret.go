@@ -12,13 +12,18 @@ import (
 	"k8s.io/client-go/util/homedir"
 	"k8s.io/client-go/util/retry"
 
+	// enable gcp auth for k8s client
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
+// Secret holds a map of the secrets that need to be created in Kubernetes
 type Secret struct {
   Secrets map[string]string
+	Namespace string
 }
 
+// ApplySecret takes a Vault secret and k8s namespace and creates the k8s secret
+// based on the data
 func ApplySecret(vaultSecret *Secret) {
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
@@ -37,7 +42,7 @@ func ApplySecret(vaultSecret *Secret) {
 		panic(err)
 	}
 
-  secretsClient := clientset.CoreV1().Secrets(apiv1.NamespaceDefault)
+  secretsClient := clientset.CoreV1().Secrets(vaultSecret.Namespace)
 
   secretData := map[string][]byte{}
 
