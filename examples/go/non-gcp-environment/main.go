@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/teamsnap/vault-key/pkg/vault"
 )
 

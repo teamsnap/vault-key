@@ -2,114 +2,82 @@ package vault
 
 import (
 	"context"
-	"errors"
-	"github.com/hashicorp/vault/api"
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/GoogleCloudPlatform/berglas/pkg/berglas"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 )
 
-// InitVaultClient takes context and a vault role and returns an initialized Vault
-// client using the value in the "VAULT_ADDR" env var.
-// It will exit the process if it fails to initialize.
-func InitVaultClient(ctx context.Context, vaultRole string) *api.Client {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/InitVaultClient")
-		defer span.End()
-	}
-
-	vaultAddr, errVaultAddr := getEncrEnvVar(ctx, "VAULT_ADDR")
-
-	if errVaultAddr != nil {
-		log.Error("Error getting vault address:", errVaultAddr)
-		return nil
-	}
-
-	vaultToken := getVaultToken(ctx, project, serviceAccount, vaultRole)
-
-	vaultClient, err := NewVaultClient(ctx, vaultAddr, vaultToken)
-
-	if err != nil {
-		log.Error("Error initializing vault client:", err)
-		return nil
-	}
-
-	return vaultClient
-}
-
-// NewVaultClient returns a configured vault api client
-func NewVaultClient(ctx context.Context, addr, token string) (*api.Client, error) {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/NewVaultClient")
-		defer span.End()
-	}
-
-	client, err := api.NewClient(&api.Config{
-		Address: addr,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	client.SetToken(token)
-
-	return client, nil
-}
-
-// GetSecret takes a vault client, key name, and data name, and returns the
-// value returned from vault as a string.
-func GetSecret(ctx context.Context, c *api.Client, secretName string) (map[string]string, error) {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/GetSecret")
-		defer span.End()
-	}
-
-	secretMap := map[string]string{}
-
-	secretValues, err := c.Logical().Read(secretName)
-	if err != nil {
-		log.Error("Error reading secret from Vault:", err)
-		return secretMap, errors.New("error reading secret from Vault for " + secretName + ": " + err.Error())
-	}
-
-	if secretValues == nil {
-		log.Error("Secret values returned from Vault are <nil> for " + secretName)
-		return secretMap, errors.New("secret values returned from Vault are <nil> for " + secretName)
-	}
-
-	// https://stackoverflow.com/questions/26975880/convert-mapinterface-interface-to-mapstringstring
-	m, ok := secretValues.Data["data"].(map[string]interface{})
-	if ok {
-		for key, value := range m {
-				secretMap[key] = value.(string)
-		}
-
-		return secretMap, nil
-	}
-
-	log.Errorf("%T %#v\n", secretValues.Data["data"], secretValues.Data["data"])
-	return secretMap, errors.New("failed to convert secret data from Vault to a string for " + secretName)
-}
-
 // GetSecrets fills a map with the values of secrets pulled from Vault.
-func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string, secretNames []string) {
-	if traceEnabled {
-		_, span := trace.StartSpan(ctx, tracePrefix+"/GetSecrets")
-		defer span.End()
+func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string, secretNames []string) error {
+	environment := os.Getenv("ENVIRONMENT")
+
+	if environment == "production" {
+		log.SetFormatter(&log.JSONFormatter{})
+		log.SetLevel(log.WarnLevel)
+	} else {
+		log.SetFormatter(&log.TextFormatter{})
+		log.SetLevel(log.TraceLevel)
 	}
 
-	initialize(ctx)
+	c := newVaultClient()
+	c.ctx = ctx
 
-	c := InitVaultClient(ctx, vaultRole)
+	err := c.loadVaultEnvironment()
+	if err != nil {
+		return fmt.Errorf("Failed to load client environment: %v", err)
+	}
+
+	err = c.initClient()
+	if err != nil {
+		return fmt.Errorf("Failed to initialze client: %v", err)
+	}
+
+	if c.traceEnabled {
+		var span *trace.Span
+		c.ctx, span = trace.StartSpan(c.ctx, fmt.Sprintf("%s/GetSecrets", c.tracePrefix))
+		defer span.End()
+	}
 
 	for _, secretName := range secretNames {
-		log.Debug("secret, err := GetSecret(c, " + secretName + ")")
+		log.Debug(fmt.Sprintf("secret= %s", secretNames))
 
-		secret, err := GetSecret(ctx, c, secretName)
+		secret, err := c.getSecretFromVault(secretName)
 		if err != nil {
-			log.Error("Error getting secret:", err)
-		} else {
-			(*secretValues)[secretName] = secret
+			return fmt.Errorf("Error getting secret: %v", err)
+		}
+
+		(*secretValues)[secretName] = secret
+	}
+
+	return nil
+}
+
+func getEnv(varName, defaultVal string) string {
+
+	if value, isPresent := os.LookupEnv(varName); isPresent {
+		return value
+	}
+
+	return defaultVal
+}
+
+// getEncrEnvVar takes the name of an environment variable that's value begins
+// with "berglas://", decrypts the value from a Google Storage Bucket with KMS,
+// replaces the original environment variable value with the decrypted value,
+// and returns the value as a string. If there's an error fetching the value, it
+// will return an empty string along with the error message.
+func getEncrEnvVar(ctx context.Context, n string) (string, error) {
+
+	val := os.Getenv(n)
+	if strings.HasPrefix(val, "berglas://") {
+		if err := berglas.Replace(ctx, n); err != nil {
+			return "", err
 		}
 	}
+
+	return os.Getenv(n), nil
 }

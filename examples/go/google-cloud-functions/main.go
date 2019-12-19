@@ -2,11 +2,12 @@ package gcf
 
 import (
 	"context"
-	"contrib.go.opencensus.io/exporter/stackdriver"
 	"fmt"
+	"log"
+
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/teamsnap/vault-key/pkg/vault"
 	"go.opencensus.io/trace"
-	"log"
 )
 
 var env = map[string]map[string]string{}
@@ -43,7 +44,7 @@ func init() {
 	vault.GetSecrets(ctx, &env, envMap)
 }
 
-func VaultOnInit(ctx context.Context, m PubSubMessage) error {
+func vaultOnInit(ctx context.Context, m PubSubMessage) error {
 	fmt.Println("Environment Values:", env)
 	fmt.Println("hello = " + env["test/data/test"]["hello"])
 
