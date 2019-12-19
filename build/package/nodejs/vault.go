@@ -4,35 +4,36 @@ package main
 import "C"
 import (
 	"context"
-	"github.com/teamsnap/vault-key/pkg/vault"
-	"fmt"
 	"encoding/json"
+	"fmt"
+
+	"github.com/teamsnap/vault-key/pkg/vault"
 )
 
 var env = map[string]map[string]string{}
 
 //export GetSecrets
 func GetSecrets(secretNames *C.char) *C.char {
-		ctx := context.Background()
+	ctx := context.Background()
 
-		secretNamesStr := C.GoString(secretNames)
+	secretNamesStr := C.GoString(secretNames)
 
-		var envArr []string
-		if err := json.Unmarshal([]byte(secretNamesStr), &envArr); err != nil {
-			panic(err)
-		}
+	var envArr []string
+	if err := json.Unmarshal([]byte(secretNamesStr), &envArr); err != nil {
+		panic(err)
+	}
 
-		vault.GetSecrets(ctx, &env, envArr)
+	vault.GetSecrets(ctx, &env, envArr)
 
-		secretData, err := json.Marshal(env)
-		if err != nil {
-				fmt.Println(err.Error())
-				return C.CString("")
-		}
+	secretData, err := json.Marshal(env)
+	if err != nil {
+		fmt.Println(err.Error())
+		return C.CString("")
+	}
 
-		jsonStr := string(secretData)
+	jsonStr := string(secretData)
 
-		return C.CString(jsonStr)
+	return C.CString(jsonStr)
 }
 
 func main() {
