@@ -1,7 +1,0 @@
-steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'us.gcr.io/$PROJECT_ID/vault-key:$COMMIT_SHA', '-f', 'build/package/Dockerfile', '.']
-
-tags: ['docker_image']
-
-images: ['us.gcr.io/$PROJECT_ID/vault-key:$COMMIT_SHA']
