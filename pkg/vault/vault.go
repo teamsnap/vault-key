@@ -56,6 +56,53 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 	return nil
 }
 
+
+
+// GetSecretVersions fills a map with the versions of secrets pulled from Vault.
+func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, secretNames []string) error {
+	environment := os.Getenv("ENVIRONMENT")
+
+	if environment == "production" {
+		log.SetFormatter(&log.JSONFormatter{})
+		log.SetLevel(log.WarnLevel)
+	} else {
+		log.SetFormatter(&log.TextFormatter{})
+		log.SetLevel(log.TraceLevel)
+	}
+
+	c := newVaultClient()
+	c.ctx = ctx
+
+	err := c.loadVaultEnvironment()
+	if err != nil {
+		return fmt.Errorf("Failed to load client environment: %v", err)
+	}
+
+	err = c.initClient()
+	if err != nil {
+		return fmt.Errorf("Failed to initialze client: %v", err)
+	}
+
+	if c.traceEnabled {
+		var span *trace.Span
+		c.ctx, span = trace.StartSpan(c.ctx, fmt.Sprintf("%s/GetSecrets", c.tracePrefix))
+		defer span.End()
+	}
+
+	for _, secretName := range secretNames {
+		log.Debug(fmt.Sprintf("secret= %s", secretNames))
+
+		secretVersion, err := c.getSecretVersionFromVault(secretName)
+		if err != nil {
+			return fmt.Errorf("Error getting secret version: %v", err)
+		}
+
+		(*secretVersions)[secretName] = secretVersion
+	}
+
+	return nil
+}
+
 func getEnv(varName, defaultVal string) string {
 
 	if value, isPresent := os.LookupEnv(varName); isPresent {

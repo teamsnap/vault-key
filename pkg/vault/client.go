@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/vault/api"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
+	"encoding/json"
 )
 
 type vaultClient struct {
@@ -134,4 +135,30 @@ func (vc *vaultClient) getSecretFromVault(secretName string) (map[string]string,
 
 	log.Errorf("%T %#v\n", secretValues.Data["data"], secretValues.Data["data"])
 	return secretMap, fmt.Errorf("failed to convert secret data from Vault to a string for %s", secretName)
+}
+
+// getSecretVersionFromVault takes a vault client, key name, and data name, and returns the
+// version of the Vault secret as an int.
+func (vc *vaultClient) getSecretVersionFromVault(secretName string) (int64, error) {
+	if vc.traceEnabled {
+		var span *trace.Span
+		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getSecretFromVault", vc.tracePrefix))
+		defer span.End()
+	}
+
+	version := int64(0)
+
+	secretValues, err := vc.client.Logical().Read(secretName)
+	if err != nil {
+		log.Error(fmt.Sprintf("Error reading secret from Vault: %v", err))
+		return version, fmt.Errorf("error reading secret from Vault for %s", secretName)
+	}
+
+	version, err = secretValues.Data["metadata"].(map[string]interface{})["version"].(json.Number).Int64()
+	if err != nil {
+		log.Error(fmt.Sprintf("Error converting secret version to integer for %s: %v", secretName, err))
+		return version, fmt.Errorf("Error converting secret version to integer for %s: %v", secretName, err)
+	}
+
+	return version, nil
 }
