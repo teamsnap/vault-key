@@ -90,14 +90,14 @@ func (a *gcpAuthClient) generateSignedJWT(ctx context.Context, c *config) error 
 }
 
 // openVault takes signed JWT and sends login request to vault
-func (a *gcpAuthClient) openVault(vc *vaultClient) (vaultResp *api.Secret, err error) {
+func (a *gcpAuthClient) openVault(vc *vaultClient) (*api.Secret, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
 		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/vaultLogin", vc.config.tracePrefix))
 		defer span.End()
 	}
 
-	vaultResp, err = vc.client.Logical().Write(
+	vaultResp, err := vc.client.Logical().Write(
 		"auth/gcp/login",
 		map[string]interface{}{
 			"role": vc.config.vaultRole,
