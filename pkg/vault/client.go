@@ -18,18 +18,26 @@ type vaultClient struct {
 	ctx        context.Context
 }
 
-func newVaultClient(c *config) *vaultClient {
+func newVaultClient(ctx context.Context, c *config) (Client, error) {
 	client := &vaultClient{
 		config: c,
+		ctx:    ctx,
 	}
 
-	return client
+	client.authClient = NewAuthClient()
+
+	err := initClient(client)
+	if err != nil {
+		return nil, fmt.Errorf("initialze client: %v", err)
+	}
+
+	return client, nil
 }
 
 // initClient takes context and a vault role and returns an initialized Vault
 // client using the value in the "VAULT_ADDR" env var.
 // It will exit the process if it fails to initialize.
-func (vc *vaultClient) initClient() (err error) {
+func initClient(vc *vaultClient) error {
 	if vc.config.traceEnabled {
 		var span *trace.Span
 		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/initClient", vc.config.tracePrefix))
@@ -61,9 +69,9 @@ func (vc *vaultClient) initClient() (err error) {
 	return err
 }
 
-// getSecretFromVault takes a vault client, key name, and data name, and returns the
+// GetSecretFromVault takes a vault client, key name, and data name, and returns the
 // value returned from vault as a string.
-func (vc *vaultClient) getSecretFromVault(secretName string) (map[string]string, error) {
+func (vc *vaultClient) GetSecretFromVault(secretName string) (map[string]string, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
 		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getSecretFromVault", vc.config.tracePrefix))
@@ -97,9 +105,9 @@ func (vc *vaultClient) getSecretFromVault(secretName string) (map[string]string,
 	return secretMap, fmt.Errorf("converting secret data from Vault to a string for %s", secretName)
 }
 
-// getSecretVersionFromVault takes a vault client, key name, and data name, and returns the
+// GetSecretVersionFromVault takes a vault client, key name, and data name, and returns the
 // version of the Vault secret as an int.
-func (vc *vaultClient) getSecretVersionFromVault(secretName string) (int64, error) {
+func (vc *vaultClient) GetSecretVersionFromVault(secretName string) (int64, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
 		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getSecretFromVault", vc.config.tracePrefix))
