@@ -23,7 +23,7 @@ func loadVaultEnvironment() (*config, error) {
 
 	c.tracePrefix = getEnv("TRACE_PREFIX", "vault")
 	if c.tracePrefix == "" {
-		return nil, errors.New("TRACE_PREFIX variable from environment")
+		return nil, errors.New("set the TRACE_PREFIX variable from environment")
 	}
 
 	c.vaultRole = getEnv("VAULT_ROLE", "")

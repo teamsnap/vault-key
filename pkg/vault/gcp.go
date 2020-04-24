@@ -35,7 +35,7 @@ func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 	var err error
 	a.iamService, err = iam.NewService(vc.ctx)
 	if err != nil {
-		return "", fmt.Errorf("Error getting vault token: %v", err)
+		return "", fmt.Errorf("getting vault token: %v", err)
 	}
 
 	log.Debug("Successfully created IAM client")
@@ -74,7 +74,7 @@ func (a *gcpAuthClient) generateSignedJWT(ctx context.Context, c *config) error 
 
 	payloadBytes, err := json.Marshal(jwtPayload)
 	if err != nil {
-		return fmt.Errorf("Error marshaling payload: %v", err)
+		return fmt.Errorf("marshaling payload: %v", err)
 	}
 
 	signJwtReq := &iam.SignJwtRequest{
@@ -83,7 +83,7 @@ func (a *gcpAuthClient) generateSignedJWT(ctx context.Context, c *config) error 
 
 	a.resp, err = a.iamService.Projects.ServiceAccounts.SignJwt(resourceName, signJwtReq).Do()
 	if err != nil {
-		return fmt.Errorf("Error sigining jwt: %v", err)
+		return fmt.Errorf("sigining jwt: %v", err)
 	}
 
 	return nil

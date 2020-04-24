@@ -48,6 +48,16 @@ func (vc *vaultClient) initClient() (err error) {
 		return fmt.Errorf("initializing new vault api client: %v", err)
 	}
 
+	token, err := vc.authClient.GetVaultToken(vc)
+	if err != nil {
+		return err
+	}
+
+	vc.client.SetToken(token)
+	if err != nil {
+		return fmt.Errorf("Error setting vault token: %v", err)
+	}
+
 	return err
 }
 
@@ -64,12 +74,12 @@ func (vc *vaultClient) getSecretFromVault(secretName string) (map[string]string,
 
 	secretValues, err := vc.client.Logical().Read(secretName)
 	if err != nil {
-		log.Error(fmt.Sprintf("Error reading secret from Vault: %v", err))
-		return secretMap, fmt.Errorf("error reading secret from Vault for %s", secretName)
+		log.Error(fmt.Sprintf("reading secret from Vault: %v", err))
+		return secretMap, fmt.Errorf("reading secret from Vault for %s", secretName)
 	}
 
 	if secretValues == nil {
-		log.Error("Secret values returned from Vault are <nil> for " + secretName)
+		log.Error("secret values returned from Vault are <nil> for " + secretName)
 		return secretMap, fmt.Errorf("secret values returned from Vault are <nil> for %s", secretName)
 	}
 
@@ -84,7 +94,7 @@ func (vc *vaultClient) getSecretFromVault(secretName string) (map[string]string,
 	}
 
 	log.Errorf("%T %#v\n", secretValues.Data["data"], secretValues.Data["data"])
-	return secretMap, fmt.Errorf("failed to convert secret data from Vault to a string for %s", secretName)
+	return secretMap, fmt.Errorf("converting secret data from Vault to a string for %s", secretName)
 }
 
 // getSecretVersionFromVault takes a vault client, key name, and data name, and returns the
@@ -101,13 +111,13 @@ func (vc *vaultClient) getSecretVersionFromVault(secretName string) (int64, erro
 	secretValues, err := vc.client.Logical().Read(secretName)
 	if err != nil {
 		log.Error(fmt.Sprintf("Error reading secret from Vault: %v", err))
-		return version, fmt.Errorf("error reading secret from Vault for %s", secretName)
+		return version, fmt.Errorf("reading secret from Vault for %s", secretName)
 	}
 
 	version, err = secretValues.Data["metadata"].(map[string]interface{})["version"].(json.Number).Int64()
 	if err != nil {
 		log.Error(fmt.Sprintf("Error converting secret version to integer for %s: %v", secretName, err))
-		return version, fmt.Errorf("Error converting secret version to integer for %s: %v", secretName, err)
+		return version, fmt.Errorf("converting secret version to integer for %s: %v", secretName, err)
 	}
 
 	return version, nil

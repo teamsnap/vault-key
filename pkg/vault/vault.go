@@ -91,7 +91,7 @@ func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, se
 
 	err = vc.initClient()
 	if err != nil {
-		return fmt.Errorf("Failed to initialze client: %v", err)
+		return fmt.Errorf("initialzing vault client: %v", err)
 	}
 
 	vc.authClient = NewAuthClient()
@@ -117,7 +117,7 @@ func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, se
 
 		secretVersion, err := vc.getSecretVersionFromVault(secretName)
 		if err != nil {
-			return fmt.Errorf("Error getting secret version: %v", err)
+			return fmt.Errorf("getting secret version: %v", err)
 		}
 
 		(*secretVersions)[secretName] = secretVersion
