@@ -1,0 +1,104 @@
+package vault
+
+import (
+	"context"
+	"net"
+	"testing"
+
+	"github.com/hashicorp/vault/api"
+	"github.com/hashicorp/vault/http"
+	"github.com/hashicorp/vault/vault"
+)
+
+type MockAuthClient struct{}
+
+func (m *MockAuthClient) GetVaultToken(c *vaultClient) (string, error) { return "token", nil }
+
+var authClient AuthClient
+var c *config
+var ctx context.Context
+var secretKey string
+var secretValue string
+
+func init() {
+	c = &config{
+		project:        "test",
+		serviceAccount: "none",
+		traceEnabled:   false,
+		tracePrefix:    "test",
+		vaultRole:      "read",
+	}
+
+	secretKey = "myKey"
+	secretValue = "myValue"
+
+	authClient = &MockAuthClient{}
+	ctx = context.Background()
+}
+
+func TestNewVaultClient(t *testing.T) {
+	_, err := NewVaultClient(ctx, authClient, c)
+	if err != nil {
+		t.Errorf("initialize vault client: %v", err)
+	}
+}
+
+func TestGetSecretFromVault(t *testing.T) {
+	ln, client := createTestVault(t)
+	defer ln.Close()
+
+	vc := &vaultClient{
+		authClient: authClient,
+		config:     c,
+		ctx:        ctx,
+		client:     client,
+	}
+
+	path := "secret/test/data/"
+	secrets, err := vc.GetSecretFromVault(path)
+	if err != nil {
+		t.Errorf("get secret from vault, %v", err)
+	}
+
+	for k, v := range secrets {
+		if k != secretKey {
+			t.Errorf("Actual: %q, Expected: %q", k, secretKey)
+		}
+		if v != secretValue {
+			t.Errorf("Actual: %q, Expected: %q", v, secretValue)
+		}
+	}
+}
+
+func createTestVault(t *testing.T) (net.Listener, *api.Client) {
+	t.Helper()
+
+	// Create an in-memory, unsealed core (the "backend", if you will).
+	core, keyShares, rootToken := vault.TestCoreUnsealed(t)
+	_ = keyShares
+
+	// Start an HTTP server for the core.
+	ln, addr := http.TestServer(t, core)
+
+	// Create a client that talks to the server, initially authenticating with
+	// the root token.
+	conf := api.DefaultConfig()
+	conf.Address = addr
+
+	client, err := api.NewClient(conf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	client.SetToken(rootToken)
+
+	secrets := map[string]interface{}{
+		"data": map[string]interface{}{secretKey: secretValue},
+	}
+	// Setup required secrets, policies, etc.
+	_, err = client.Logical().Write("secret/test/data", secrets)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return ln, client
+}
