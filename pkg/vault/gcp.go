@@ -35,7 +35,7 @@ func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 	var err error
 	a.iamService, err = iam.NewService(vc.ctx)
 	if err != nil {
-		return "", fmt.Errorf("getting vault token: %v", err)
+		return "", fmt.Errorf("getting new iam service: %v", err)
 	}
 
 	log.Debug("Successfully created IAM client")
