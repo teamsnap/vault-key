@@ -3,12 +3,10 @@ package vault
 import (
 	"context"
 	"errors"
-	"net"
 	"testing"
 
-	"github.com/hashicorp/vault/api"
-	"github.com/hashicorp/vault/http"
-	"github.com/hashicorp/vault/vault"
+	vaulthttp "github.com/hashicorp/vault/http"
+	hashivault "github.com/hashicorp/vault/vault"
 )
 
 type MockAuthClient struct{}
@@ -66,17 +64,20 @@ func TestNewVaultClient(t *testing.T) {
 }
 
 func TestGetSecretFromVault(t *testing.T) {
-	ln, client := createTestVault(t)
-	defer ln.Close()
+	cluster := createTestVault(t)
+	defer cluster.Cleanup()
+
+	rootVaultClient := cluster.Cores[0].Client
 	vc := &vaultClient{
 		authClient: authClient,
 		config:     c,
 		ctx:        ctx,
-		client:     client,
+		client:     rootVaultClient,
 	}
 
 	t.Run("valid client", testValidClient(vc))
 	t.Run("invalid path", tesetInvalidPath(vc))
+	t.Run("versioned secrets", testVersionedSecrets(vc))
 }
 
 func testValidClient(vc *vaultClient) func(*testing.T) {
@@ -98,6 +99,21 @@ func testValidClient(vc *vaultClient) func(*testing.T) {
 	}
 }
 
+func testVersionedSecrets(vc *vaultClient) func(*testing.T) {
+	return func(t *testing.T) {
+		path := "secret/test/data/"
+		version, err := vc.GetSecretVersionFromVault(path)
+		if err != nil {
+			t.Errorf("get versioned secret from vault, %v", err)
+		}
+
+		if version != 2 {
+			t.Errorf("Actual: %v, Expected: %v", version, 2)
+		}
+
+	}
+}
+
 func tesetInvalidPath(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
 		path := "foo"
@@ -110,35 +126,24 @@ func tesetInvalidPath(vc *vaultClient) func(*testing.T) {
 	}
 }
 
-func createTestVault(t *testing.T) (net.Listener, *api.Client) {
+func createTestVault(t *testing.T) *hashivault.TestCluster {
 	t.Helper()
 
-	// Create an in-memory, unsealed core (the "backend", if you will).
-	core, keyShares, rootToken := vault.TestCoreUnsealed(t)
-	_ = keyShares
-
-	// Start an HTTP server for the core.
-	ln, addr := http.TestServer(t, core)
-
-	// Create a client that talks to the server, initially authenticating with
-	// the root token.
-	conf := api.DefaultConfig()
-	conf.Address = addr
-
-	client, err := api.NewClient(conf)
-	if err != nil {
-		t.Fatal(err)
-	}
-	client.SetToken(rootToken)
+	coreConfig := &hashivault.CoreConfig{}
+	cluster := hashivault.NewTestCluster(t, coreConfig, &hashivault.TestClusterOptions{
+		HandlerFunc: vaulthttp.Handler,
+	})
+	cluster.Start()
 
 	secrets := map[string]interface{}{
-		"data": map[string]interface{}{secretKey: secretValue},
+		"data":     map[string]interface{}{secretKey: secretValue},
+		"metadata": map[string]interface{}{"version": 2},
 	}
 	// Setup required secrets, policies, etc.
-	_, err = client.Logical().Write("secret/test/data", secrets)
+	_, err := cluster.Cores[0].Client.Logical().Write("secret/test/data", secrets)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return ln, client
+	return cluster
 }
