@@ -1,6 +1,6 @@
 module github.com/teamsnap/vault-key/pkg/vault
 
-go 1.11.6
+go 1.13.3
 
 require (
 	github.com/GoogleCloudPlatform/berglas v0.2.1
