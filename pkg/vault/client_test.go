@@ -2,6 +2,7 @@ package vault
 
 import (
 	"context"
+	"errors"
 	"net"
 	"testing"
 
@@ -37,16 +38,36 @@ func init() {
 }
 
 func TestNewVaultClient(t *testing.T) {
-	_, err := NewVaultClient(ctx, authClient, c)
-	if err != nil {
-		t.Errorf("initialize vault client: %v", err)
+	tests := []struct {
+		name     string
+		auth     AuthClient
+		expected error
+	}{
+		{"valid auth client", authClient, nil},
+		{"invalid auth client", NewAuthClient(), errors.New("initialze client: getting new iam service: google: could not find default credentials")},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewVaultClient(ctx, tt.auth, c)
+			if err != nil && tt.expected != nil {
+				if err.Error() != tt.expected.Error() {
+					t.Errorf("Actual: %q. Expected: %q", err, tt.expected)
+				}
+			}
+
+			if err == nil {
+				if tt.expected != nil {
+					t.Errorf("Actual: %q. Expected: %q", err, tt.expected)
+				}
+			}
+		})
 	}
 }
 
 func TestGetSecretFromVault(t *testing.T) {
 	ln, client := createTestVault(t)
 	defer ln.Close()
-
 	vc := &vaultClient{
 		authClient: authClient,
 		config:     c,
@@ -54,18 +75,37 @@ func TestGetSecretFromVault(t *testing.T) {
 		client:     client,
 	}
 
-	path := "secret/test/data/"
-	secrets, err := vc.GetSecretFromVault(path)
-	if err != nil {
-		t.Errorf("get secret from vault, %v", err)
-	}
+	t.Run("valid client", testValidClient(vc))
+	t.Run("invalid path", tesetInvalidPath(vc))
+}
 
-	for k, v := range secrets {
-		if k != secretKey {
-			t.Errorf("Actual: %q, Expected: %q", k, secretKey)
+func testValidClient(vc *vaultClient) func(*testing.T) {
+	return func(t *testing.T) {
+		path := "secret/test/data/"
+		secrets, err := vc.GetSecretFromVault(path)
+		if err != nil {
+			t.Errorf("get secret from vault, %v", err)
 		}
-		if v != secretValue {
-			t.Errorf("Actual: %q, Expected: %q", v, secretValue)
+
+		for k, v := range secrets {
+			if k != secretKey {
+				t.Errorf("Actual: %q, Expected: %q", k, secretKey)
+			}
+			if v != secretValue {
+				t.Errorf("Actual: %q, Expected: %q", v, secretValue)
+			}
+		}
+	}
+}
+
+func tesetInvalidPath(vc *vaultClient) func(*testing.T) {
+	return func(t *testing.T) {
+		path := "foo"
+		_, err := vc.GetSecretFromVault(path)
+
+		expected := errors.New("secret values returned from Vault are <nil> for foo")
+		if err.Error() != expected.Error() {
+			t.Errorf("Expected invalid path to raise error: %v", err)
 		}
 	}
 }
