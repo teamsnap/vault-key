@@ -18,13 +18,13 @@ type vaultClient struct {
 	ctx        context.Context
 }
 
-func newVaultClient(ctx context.Context, c *config) (Client, error) {
+// NewVaultClient configures and returns an initialized vault client.
+func NewVaultClient(ctx context.Context, a AuthClient, c *config) (Client, error) {
 	client := &vaultClient{
-		config: c,
-		ctx:    ctx,
+		authClient: a,
+		config:     c,
+		ctx:        ctx,
 	}
-
-	client.authClient = NewAuthClient()
 
 	err := initClient(client)
 	if err != nil {

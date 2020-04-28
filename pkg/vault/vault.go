@@ -39,7 +39,8 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 		return fmt.Errorf("load client environment: %v", err)
 	}
 
-	vc, err := newVaultClient(ctx, config)
+	auth := NewAuthClient()
+	vc, err := NewVaultClient(ctx, auth, config)
 
 	if config.traceEnabled {
 		var span *trace.Span
@@ -78,7 +79,8 @@ func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, se
 		return fmt.Errorf("load client environment: %v", err)
 	}
 
-	vc, err := newVaultClient(ctx, config)
+	auth := NewAuthClient()
+	vc, err := NewVaultClient(ctx, auth, config)
 
 	if config.traceEnabled {
 		var span *trace.Span
