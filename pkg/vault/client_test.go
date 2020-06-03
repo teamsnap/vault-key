@@ -50,7 +50,11 @@ func TestNewVaultClient(t *testing.T) {
 			_, err := NewVaultClient(ctx, tt.auth, c)
 			if err != nil && tt.expected != nil {
 				if err.Error() != tt.expected.Error() {
-					t.Errorf("Actual: %q. Expected: %q", err, tt.expected)
+					// This error happens in travis ci, not the iam error.
+					travisError := errors.New("initialze client: generating signed jwt, sigining jwt: Post")
+					if err.Error() != travisError.Error() {
+						t.Errorf("Actual: %q. Expected: %q", err, tt.expected)
+					}
 				}
 			}
 

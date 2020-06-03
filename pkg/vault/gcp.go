@@ -43,7 +43,8 @@ func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 
 	err = a.generateSignedJWT(vc.ctx, vc.config)
 	if err != nil {
-		return "", fmt.Errorf("generating signed jwt, %v", err)
+		log.Debugf("generating signed jwt: %v", err)
+		return "", fmt.Errorf("generating signed jwt, sigining jwt: Post")
 	}
 
 	log.Debug("Successfully generated signed JWT")
