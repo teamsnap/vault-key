@@ -11,6 +11,17 @@ import (
 	"go.opencensus.io/trace"
 )
 
+// AuthClient is a type that satifies the necesary authorization layer for a vault client.
+type AuthClient interface {
+	GetVaultToken(vc *vaultClient) (string, error)
+}
+
+// Client is a vault api client that is authorized to get secrets out of a vault.
+type Client interface {
+	GetSecretFromVault(secret string) (map[string]string, error)
+	GetSecretVersionFromVault(secret string) (int64, error)
+}
+
 // GetSecrets fills a map with the values of secrets pulled from Vault.
 func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string, secretNames []string) error {
 	environment := os.Getenv("ENVIRONMENT")
@@ -23,31 +34,26 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 		log.SetLevel(log.TraceLevel)
 	}
 
-	c := newVaultClient()
-	c.ctx = ctx
-
-	err := c.loadVaultEnvironment()
+	config, err := loadVaultEnvironment()
 	if err != nil {
-		return fmt.Errorf("Failed to load client environment: %v", err)
+		return fmt.Errorf("load client environment: %v", err)
 	}
 
-	err = c.initClient()
-	if err != nil {
-		return fmt.Errorf("Failed to initialze client: %v", err)
-	}
+	auth := NewAuthClient()
+	vc, err := NewVaultClient(ctx, auth, config)
 
-	if c.traceEnabled {
+	if config.traceEnabled {
 		var span *trace.Span
-		c.ctx, span = trace.StartSpan(c.ctx, fmt.Sprintf("%s/GetSecrets", c.tracePrefix))
+		ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/GetSecrets", config.tracePrefix))
 		defer span.End()
 	}
 
 	for _, secretName := range secretNames {
 		log.Debug(fmt.Sprintf("secret= %s", secretNames))
 
-		secret, err := c.getSecretFromVault(secretName)
+		secret, err := vc.GetSecretFromVault(secretName)
 		if err != nil {
-			return fmt.Errorf("Error getting secret: %v", err)
+			return fmt.Errorf("getting secret: %v", err)
 		}
 
 		(*secretValues)[secretName] = secret
@@ -55,8 +61,6 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 
 	return nil
 }
-
-
 
 // GetSecretVersions fills a map with the versions of secrets pulled from Vault.
 func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, secretNames []string) error {
@@ -70,31 +74,26 @@ func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, se
 		log.SetLevel(log.TraceLevel)
 	}
 
-	c := newVaultClient()
-	c.ctx = ctx
-
-	err := c.loadVaultEnvironment()
+	config, err := loadVaultEnvironment()
 	if err != nil {
-		return fmt.Errorf("Failed to load client environment: %v", err)
+		return fmt.Errorf("load client environment: %v", err)
 	}
 
-	err = c.initClient()
-	if err != nil {
-		return fmt.Errorf("Failed to initialze client: %v", err)
-	}
+	auth := NewAuthClient()
+	vc, err := NewVaultClient(ctx, auth, config)
 
-	if c.traceEnabled {
+	if config.traceEnabled {
 		var span *trace.Span
-		c.ctx, span = trace.StartSpan(c.ctx, fmt.Sprintf("%s/GetSecrets", c.tracePrefix))
+		ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/GetSecrets", config.tracePrefix))
 		defer span.End()
 	}
 
 	for _, secretName := range secretNames {
 		log.Debug(fmt.Sprintf("secret= %s", secretNames))
 
-		secretVersion, err := c.getSecretVersionFromVault(secretName)
+		secretVersion, err := vc.GetSecretVersionFromVault(secretName)
 		if err != nil {
-			return fmt.Errorf("Error getting secret version: %v", err)
+			return fmt.Errorf("getting secret version: %v", err)
 		}
 
 		(*secretVersions)[secretName] = secretVersion

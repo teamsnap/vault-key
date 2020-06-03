@@ -1,4 +1,4 @@
-FROM golang:1.13.1-stretch
+FROM golang:1.13.3-stretch
 
 ENV \
  GOARCH="amd64" \
