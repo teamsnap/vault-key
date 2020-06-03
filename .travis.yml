@@ -8,7 +8,13 @@ language: go
 # are allowed to fail on Go tip.
 go:
   - 1.13.3
-  - master
 
 before_install:
   - go get -v golang.org/x/lint/golint
+
+
+# script always run to completion (set +e). All of these code checks are must haves
+# in a modern Go project.
+script:
+  - cd ./pkg/vault && go test -v -cover -race ./...
+  - go vet ./... && golint ./...
