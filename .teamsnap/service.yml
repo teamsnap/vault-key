@@ -1,15 +1,16 @@
 ---
-classification: infra
+classification: lib
 production:
-  tier: 
+  tier: 1
   url: 
-  hosting_platform: 
-  logging: false
+  hosting_platform:
 performance_monitoring: []
 error_monitoring: []
 continuous_integration: []
 bug_tracking: []
 documentation: []
 deployment: []
-languages: []
+languages:
+  - name: Go
 frameworks: []
+logging: []
