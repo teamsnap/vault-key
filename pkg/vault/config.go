@@ -11,6 +11,7 @@ import (
 type config struct {
 	project        string
 	serviceAccount string
+	githubOAuthToken string
 	traceEnabled   bool
 	tracePrefix    string
 	vaultRole      string
@@ -32,15 +33,16 @@ func loadVaultEnvironment() (*config, error) {
 	}
 
 	// google injects this env var automatically in gcp environments
+	c.githubOAuthToken = getEnv("GITHUB_OAUTH_TOKEN", "")
+
+	// google injects this env var automatically in gcp environments
 	c.project = getEnv("GCLOUD_PROJECT", "")
-	if c.project == "" {
-		return nil, errors.New("set the GCLOUD_PROJECT environment variable")
-	}
 
 	// google injects this env var automatically in gcp environments
 	c.serviceAccount = getEnv("FUNCTION_IDENTITY", "")
-	if c.serviceAccount == "" {
-		return nil, errors.New("set the FUNCTION_IDENTITY environment variable")
+
+	if c.githubOAuthToken == "" && (c.project == "" || c.serviceAccount == "") {
+			return nil, errors.New("if using github auth, set the GITHUB_OAUTH_TOKEN. if using Google servive account auth, set the GCLOUD_PROJECT and FUNCTION_IDENTITY environment variables")
 	}
 
 	log.Info(fmt.Sprintf("TRACE_PREFIX=%s, VAULT_ROLE=%s, GCLOUD_PROJECT=%s, FUNCTION_IDENTITY=%s", c.tracePrefix, c.vaultRole, c.project, c.serviceAccount))

@@ -39,24 +39,29 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 		return fmt.Errorf("load client environment: %v", err)
 	}
 
-	auth := NewAuthClient()
-	vc, err := NewVaultClient(ctx, auth, config)
+	if config.githubOAuthToken == "" {
+		auth := NewAuthClient()
+		vc, err := NewVaultClient(ctx, auth, config)
 
-	if config.traceEnabled {
-		var span *trace.Span
-		ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/GetSecrets", config.tracePrefix))
-		defer span.End()
-	}
-
-	for _, secretName := range secretNames {
-		log.Debug(fmt.Sprintf("secret= %s", secretNames))
-
-		secret, err := vc.GetSecretFromVault(secretName)
-		if err != nil {
-			return fmt.Errorf("getting secret: %v", err)
+		if config.traceEnabled {
+			var span *trace.Span
+			ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/GetSecrets", config.tracePrefix))
+			defer span.End()
 		}
 
-		(*secretValues)[secretName] = secret
+		for _, secretName := range secretNames {
+			log.Debug(fmt.Sprintf("secret= %s", secretNames))
+
+			secret, err := vc.GetSecretFromVault(secretName)
+			if err != nil {
+				return fmt.Errorf("getting secret: %v", err)
+			}
+
+			(*secretValues)[secretName] = secret
+		}
+	} else {
+		// vc, err := NewVaultClientGithub(ctx, auth, config)
+		
 	}
 
 	return nil
