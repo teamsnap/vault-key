@@ -22,6 +22,7 @@ var secretValue string
 func init() {
 	c = &config{
 		project:        "test",
+		googleAuth:     true,
 		serviceAccount: "none",
 		traceEnabled:   false,
 		tracePrefix:    "test",
