@@ -9,6 +9,7 @@ import (
 	"github.com/GoogleCloudPlatform/berglas/pkg/berglas"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
+	"google.golang.org/api/iam/v1"
 )
 
 // AuthClient is a type that satifies the necesary authorization layer for a vault client.
@@ -20,6 +21,57 @@ type AuthClient interface {
 type Client interface {
 	GetSecretFromVault(secret string) (map[string]string, error)
 	GetSecretVersionFromVault(secret string) (int64, error)
+}
+
+// GetVaultToken uses a service account to get a vault auth token
+func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
+	if vc.config.traceEnabled {
+		var span *trace.Span
+		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getVaultToken", vc.config.tracePrefix))
+		defer span.End()
+	}
+
+	var err error
+
+	if vc.config.githubAuth {
+		vaultResp, err := githubVaultAuth(vc)
+		if err != nil {
+			return "", err
+		}
+
+		log.Debug("Successfully logged into Vault with auth/github/login")
+
+		return vaultResp.Auth.ClientToken, nil
+	}
+
+	if vc.config.googleAuth {
+		a.iamService, err = iam.NewService(vc.ctx)
+		if err != nil {
+			log.Debugf("initialze client: getting new iam service: %v", err)
+			return "", fmt.Errorf("getting new iam service: google: could not find default credentials")
+		}
+
+		log.Debug("Successfully created IAM client")
+
+		err = a.generateSignedJWT(vc.ctx, vc.config)
+		if err != nil {
+			log.Debugf("generating signed jwt: %v", err)
+			return "", fmt.Errorf("generating signed jwt, sigining jwt: Post")
+		}
+
+		log.Debug("Successfully generated signed JWT")
+
+		vaultResp, err := a.gcpSaAuth(vc)
+		if err != nil {
+			return "", err
+		}
+
+		log.Debug("Successfully logged into Vault with auth/gcp/login")
+
+		return vaultResp.Auth.ClientToken, nil
+	}
+
+	return "ERROR", err
 }
 
 // GetSecrets fills a map with the values of secrets pulled from Vault.
@@ -41,6 +93,10 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 
 	auth := NewAuthClient()
 	vc, err := NewVaultClient(ctx, auth, config)
+
+	if err != nil {
+		return fmt.Errorf("error initializing vault client: %v", err)
+	}
 
 	if config.traceEnabled {
 		var span *trace.Span
