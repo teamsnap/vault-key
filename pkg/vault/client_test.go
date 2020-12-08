@@ -9,20 +9,35 @@ import (
 	hashivault "github.com/hashicorp/vault/vault"
 )
 
-type MockAuthClient struct{}
+type GitHubMockAuthClient struct{}
+type GoogleMockAuthClient struct{}
 
-func (m *MockAuthClient) GetVaultToken(c *vaultClient) (string, error) { return "token", nil }
+func (m *GoogleMockAuthClient) GetVaultToken(gc *vaultClient) (string, error)  { return "token", nil }
+func (m *GitHubMockAuthClient) GetVaultToken(ghc *vaultClient) (string, error) { return "token", nil }
 
-var authClient AuthClient
-var c *config
+var googleAuthClient AuthClient
+var githubAuthClient AuthClient
+var gc *config
+var ghc *config
 var ctx context.Context
 var secretKey string
 var secretValue string
 
 func init() {
-	c = &config{
+	gc = &config{
 		project:        "test",
 		googleAuth:     true,
+		serviceAccount: "none",
+		traceEnabled:   false,
+		tracePrefix:    "test",
+		vaultRole:      "read",
+	}
+
+	ghc = &config{
+		project:        "test",
+		googleAuth:     false,
+		githubAuth:     true,
+		githubToken:    "1234",
 		serviceAccount: "none",
 		traceEnabled:   false,
 		tracePrefix:    "test",
@@ -32,23 +47,24 @@ func init() {
 	secretKey = "myKey"
 	secretValue = "myValue"
 
-	authClient = &MockAuthClient{}
+	googleAuthClient = &GoogleMockAuthClient{}
+	githubAuthClient = &GitHubMockAuthClient{}
 	ctx = context.Background()
 }
 
-func TestNewVaultClient(t *testing.T) {
+func TestGoogleVaultClient(t *testing.T) {
 	tests := []struct {
 		name     string
 		auth     AuthClient
 		expected error
 	}{
-		{"valid auth client", authClient, nil},
+		{"valid auth client", googleAuthClient, nil},
 		{"invalid auth client", NewAuthClient(), errors.New("initialze client: getting new iam service: google: could not find default credentials")},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewVaultClient(ctx, tt.auth, c)
+			_, err := NewVaultClient(ctx, tt.auth, gc)
 			if err != nil && tt.expected != nil {
 				if err.Error() != tt.expected.Error() {
 					// This error happens in travis ci, not the iam error.
@@ -68,14 +84,63 @@ func TestNewVaultClient(t *testing.T) {
 	}
 }
 
-func TestGetSecretFromVault(t *testing.T) {
+func TestGitHubVaultClient(t *testing.T) {
+	tests := []struct {
+		name     string
+		auth     AuthClient
+		expected error
+	}{
+		{"valid auth client", githubAuthClient, nil},
+		{"invalid auth client", NewAuthClient(), errors.New("initialze client: logging into vault with github:Put /v1/auth/github/login: unsupported protocol scheme \"\"")},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := NewVaultClient(ctx, tt.auth, ghc)
+			if err != nil && tt.expected != nil {
+				if err.Error() != tt.expected.Error() {
+					// This error happens in travis ci, not the iam error.
+					travisError := errors.New("initialze client: generating signed jwt, sigining jwt: Post")
+					if err.Error() != travisError.Error() {
+						t.Errorf("Actual: %q. Expected: %q", err, tt.expected)
+					}
+				}
+			}
+
+			if err == nil {
+				if tt.expected != nil {
+					t.Errorf("Actual: %q. Expected: %q", err, tt.expected)
+				}
+			}
+		})
+	}
+}
+
+func TestGoogleGetSecretFromVault(t *testing.T) {
 	cluster := createTestVault(t)
 	defer cluster.Cleanup()
 
 	rootVaultClient := cluster.Cores[0].Client
 	vc := &vaultClient{
-		authClient: authClient,
-		config:     c,
+		authClient: googleAuthClient,
+		config:     gc,
+		ctx:        ctx,
+		client:     rootVaultClient,
+	}
+
+	t.Run("valid client", testValidClient(vc))
+	t.Run("invalid path", tesetInvalidPath(vc))
+	t.Run("versioned secrets", testVersionedSecrets(vc))
+}
+
+func TestGitHubGetSecretFromVault(t *testing.T) {
+	cluster := createTestVault(t)
+	defer cluster.Cleanup()
+
+	rootVaultClient := cluster.Cores[0].Client
+	vc := &vaultClient{
+		authClient: githubAuthClient,
+		config:     ghc,
 		ctx:        ctx,
 		client:     rootVaultClient,
 	}
