@@ -1,4 +1,4 @@
-# Vault integration with GCP for Golang, NodeJS, and Ruby
+# Vault integration with GCP and GitHub for Golang, NodeJS, and Ruby
 
 Vault-Key makes it easy to use Vault with the [Google Cloud Auth Method](https://www.vaultproject.io/docs/auth/gcp.html). It uses a [GCP service account](https://cloud.google.com/iam/docs/service-accounts) and JSON web tokens to log in to Vault securely and without a password. Then it retrieves the secrets you need and makes them available in your code, hassle free.
 
@@ -71,20 +71,26 @@ puts secretsData["secret-engine-2/data/another-secret-name"]["secret-key-2"]
 ### Environment Variable Configuration
 
 |      Environment Variable        |     Default      | Required (GCP) | Required (other environments) |    Example   | Description |
-| -------------------------------- | ---------------- | -------------- | ----------------------------- | -------------------------------------------- | ----------------------------------------------------- |
-| `ENVIRONMENT`                    | `"development"`  | No             | No                            | `production`                                         | If set to anything but `production`, prints `trace` level logs |
-| `FUNCTION_IDENTITY`              | `""`             | No             | Yes                           | `my-project-123@appspot.gserviceaccount.com`         | Email address associated with service account |
-| `GCLOUD_PROJECT`                 | `""`             | No             | Yes                           | `my-project-123`                                     | Project ID the service account belongs to     |
-| `GCP_AUTH_PATH`                  | `"gcp"`          | No             | No                            | `"gcp2"`                                             | Vault GCP auth backend path                   |
-| `GOOGLE_APPLICATION_CREDENTIALS` | `""`             | No             | Yes                           | `service-account/my-project-123.serviceaccount.json` | Path to service account credentials file      |
-| `TRACE_ENABLED`                  | `"false"`        | No             | No                            | `true`                                               | Whether or to enable `opencensus` tracing     |
-| `TRACE_PREFIX`                   | `"vault"`        | No             | No                            | `my-company`                                         | Prefix added to name of tracing spans         |
-| `VAULT_ADDR`                     | `""`             | Yes            | Yes                           | `https://vault.my-company.com`                       | Vault address including protocol              |
-| `VAULT_ROLE`                     | `""`             | Yes            | Yes                           | `vault-role-cloud-functions`                         | Name of role created in Vault for GCP auth    |
+| -------------------------------- | ---------------- | -------------- | ----------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `ENVIRONMENT`                    | `"development"`  | No             | No                            | `production`                                         | If set to anything but `production`, prints `trace` level logs                     |
+| `FUNCTION_IDENTITY`              | `""`             | No             | Yes                           | `my-project-123@appspot.gserviceaccount.com`         | Email address associated with service account (Required for Google Authentication) |
+| `GITHUB_OAUTH_TOKEN`             | `""`             | No             | No                            | `1234abcd`                                           | GitHub Personal Access Token (When set, disables Google Authentication)            |
+| `GCLOUD_PROJECT`                 | `""`             | No             | No                            | `my-project-123`                                     | Project ID the service account belongs to                                          |
+| `GOOGLE_APPLICATION_CREDENTIALS` | `""`             | No             | No                            | `service-account/my-project-123.serviceaccount.json` | Path to service account credentials file                                           |
+| `TRACE_ENABLED`                  | `"false"`        | No             | No                            | `true`                                               | Whether or to enable `opencensus` tracing                                          |
+| `TRACE_PREFIX`                   | `"vault"`        | No             | No                            | `my-company`                                         | Prefix added to name of tracing spans                                              |
+| `VAULT_ADDR`                     | `""`             | Yes            | Yes                           | `https://vault.my-company.com`                       | Vault address including protocol                                                   |
+| `VAULT_ROLE`                     | `""`             | Yes            | No                            | `vault-role-cloud-functions`                         | Name of role created in Vault for GCP auth.  (Required for Google Auth)            |
+
+
+## GitHub Auth Method
+
+This project also allows you to use GitHub Personal Access tokens for Vault. You'll need to configure a [personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) for a [user configured with Vault access](https://www.vaultproject.io/api-docs/auth/github). Note that this authentication method is only enabled when the `GITHUB_OAUTH_TOKEN` environment variable is set.  When not set, this project defaults to Google authentication method specified below.
 
 ## Google Cloud Auth Method
 
 Because this project uses the [Google Cloud auth method](https://www.vaultproject.io/api/auth/gcp/index.html) for Vault, you'll need to configure a role for the service account you're using. By default, for Google Cloud Functions that will be `<project-id>@appspot.gserviceaccount.com`. You can use the [Terraform example](./examples/terraform/gcp-auth.tf) to get you started.
+
 
 ## Kubernetes
 
