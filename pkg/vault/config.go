@@ -54,17 +54,11 @@ func loadVaultEnvironment() (*config, error) {
 			return nil, errors.New("set the GCLOUD_PROJECT environment variable")
 		}
 
-<<<<<<< HEAD
-	c.gcpAuthPath = getEnv("GCP_AUTH_PATH", "gcp")
-
-	log.Info(fmt.Sprintf("TRACE_PREFIX=%s, VAULT_ROLE=%s, GCLOUD_PROJECT=%s, FUNCTION_IDENTITY=%s, GCP_AUTH_PATH=%s", c.tracePrefix, c.vaultRole, c.project, c.serviceAccount, c.gcpAuthPath))
-=======
 		// google injects this env var automatically in gcp environments
 		c.serviceAccount = getEnv("FUNCTION_IDENTITY", "")
 		if c.serviceAccount == "" {
 			return nil, errors.New("set the FUNCTION_IDENTITY environment variable")
 		}
->>>>>>> f698a41 (First pass at adding in GitHub vault authentication)
 
 		c.vaultRole = getEnv("VAULT_ROLE", "")
 		if c.vaultRole == "" {
