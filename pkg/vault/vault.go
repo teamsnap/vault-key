@@ -71,7 +71,7 @@ func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 		return vaultResp.Auth.ClientToken, nil
 	}
 
-	return "ERROR", err
+	return "", err
 }
 
 // GetSecrets fills a map with the values of secrets pulled from Vault.

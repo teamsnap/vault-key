@@ -57,8 +57,11 @@ func initClient(vc *vaultClient) error {
 	}
 
 	token, err := vc.authClient.GetVaultToken(vc)
-	vc.client.SetToken(token)
+	if err != nil {
+		return fmt.Errorf("getting vault api token from client: %v", err)
+	}
 
+	vc.client.SetToken(token)
 	return err
 }
 
