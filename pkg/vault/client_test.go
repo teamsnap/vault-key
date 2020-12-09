@@ -91,7 +91,7 @@ func TestGitHubVaultClient(t *testing.T) {
 		expected error
 	}{
 		{"valid auth client", githubAuthClient, nil},
-		{"invalid auth client", NewAuthClient(), errors.New("initialze client: initialze client: getting vault api token from client: logging into vault with github:Put /v1/auth/github/login: unsupported protocol scheme \"\"")},
+		{"invalid auth client", NewAuthClient(), errors.New("initialze client: getting vault api token from client: logging into vault with github:Put /v1/auth/github/login: unsupported protocol scheme \"\"")},
 	}
 
 	for _, tt := range tests {
