@@ -2,6 +2,7 @@ package vault
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -71,7 +72,7 @@ func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 		return vaultResp.Auth.ClientToken, nil
 	}
 
-	return "", err
+	return "", errors.New("GetVaultToken: configuration error, one of [githubAuth, googleAuth] must be set to true")
 }
 
 // GetSecrets fills a map with the values of secrets pulled from Vault.
