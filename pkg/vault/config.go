@@ -49,22 +49,18 @@ func loadVaultEnvironment() (*config, error) {
 		}
 
 		// google injects this env var automatically in gcp environments
-		c.project = getEnv("GCLOUD_PROJECT", "")
-		if c.project == "" {
-			return nil, errors.New("set the GCLOUD_PROJECT environment variable")
-		}
-
-		// google injects this env var automatically in gcp environments
 		c.serviceAccount = getEnv("FUNCTION_IDENTITY", "")
 		if c.serviceAccount == "" {
 			return nil, errors.New("set the FUNCTION_IDENTITY environment variable")
 		}
 
+		c.gcpAuthPath = getEnv("GCP_AUTH_PATH", "gcp")
+
 		c.vaultRole = getEnv("VAULT_ROLE", "")
 		if c.vaultRole == "" {
 			return nil, errors.New("set the VAULT_ROLE environment variable")
 		}
-		log.Info(fmt.Sprintf("TRACE_PREFIX=%s, VAULT_ROLE=%s, GCLOUD_PROJECT=%s, FUNCTION_IDENTITY=%s, GOOGLE_AUTH=%t", c.tracePrefix, c.vaultRole, c.project, c.serviceAccount, c.googleAuth))
+		log.Info(fmt.Sprintf("TRACE_PREFIX=%s, VAULT_ROLE=%s, GCLOUD_PROJECT=%s, FUNCTION_IDENTITY=%s, GOOGLE_AUTH=%t, GCP_AUTH_PATH=%s", c.tracePrefix, c.vaultRole, c.project, c.serviceAccount, c.googleAuth, c.gcpAuthPath))
 	}
 	return c, nil
 }
