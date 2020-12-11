@@ -14,6 +14,7 @@ type config struct {
 	traceEnabled   bool
 	tracePrefix    string
 	vaultRole      string
+	gcpAuthPath    string
 }
 
 func loadVaultEnvironment() (*config, error) {
@@ -43,7 +44,9 @@ func loadVaultEnvironment() (*config, error) {
 		return nil, errors.New("set the FUNCTION_IDENTITY environment variable")
 	}
 
-	log.Info(fmt.Sprintf("TRACE_PREFIX=%s, VAULT_ROLE=%s, GCLOUD_PROJECT=%s, FUNCTION_IDENTITY=%s", c.tracePrefix, c.vaultRole, c.project, c.serviceAccount))
+	c.gcpAuthPath = getEnv("GCP_AUTH_PATH", "gcp")
+
+	log.Info(fmt.Sprintf("TRACE_PREFIX=%s, VAULT_ROLE=%s, GCLOUD_PROJECT=%s, FUNCTION_IDENTITY=%s, GCP_AUTH_PATH=%s", c.tracePrefix, c.vaultRole, c.project, c.serviceAccount, c.gcpAuthPath))
 
 	return c, nil
 }
