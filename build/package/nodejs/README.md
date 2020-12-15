@@ -31,4 +31,5 @@ console.log(`secret-key-2 value = ${secretData['secret-engine-2/data/another-sec
 # Publishing
 
 1. On MacOS: `make build_all`
-2. `npm publish --access public`
+1. Bump version in `package.json`
+1. `npm publish --access public`
