@@ -22,7 +22,7 @@ This requires you to build the gem before being able to use it.
 After all necessary environment variables are exported, and the gem is built run, move back into `examples/ruby/non-gcp-environment` and run:
 
 ```sh
-gem install ../../../build/package/ruby/vault-gem/vault-key-0.0.0.gem
+gem install ../../../build/package/ruby/vault-gem/vault-key-0.0.1.gem
 
 ruby main.rb
 ```
