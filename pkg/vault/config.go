@@ -56,8 +56,6 @@ func loadVaultEnvironment() (*config, error) {
 
 		c.gcpAuthPath = getEnv("GCP_AUTH_PATH", "gcp")
 
-		log.Info(fmt.Sprintf("TRACE_PREFIX=%s, VAULT_ROLE=%s, GCLOUD_PROJECT=%s, FUNCTION_IDENTITY=%s", c.tracePrefix, c.vaultRole, c.project, c.serviceAccount, c.gcpAuthPath))
-
 		c.vaultRole = getEnv("VAULT_ROLE", "")
 		if c.vaultRole == "" {
 			return nil, errors.New("set the VAULT_ROLE environment variable")
