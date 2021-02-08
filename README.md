@@ -4,7 +4,7 @@ Vault-Key makes it easy to use Vault with the [Google Cloud Auth Method](https:/
 
 ## Usage
 
-### Golang 
+### Golang
 
 ```go
 package main
@@ -77,6 +77,9 @@ puts secretsData["secret-engine-2/data/another-secret-name"]["secret-key-2"]
 | `GITHUB_OAUTH_TOKEN`                 | `""`             | No             | No                           | `1234abcd`                                     | GitHub Personal Access Token (When set, disables Google Authentication)  |
 | `GCLOUD_PROJECT`                 | `""`             | No             | No                           | `my-project-123`                                     | Project ID the service account belongs to     |
 | `GOOGLE_APPLICATION_CREDENTIALS` | `""`             | No             | No                           | `service-account/my-project-123.serviceaccount.json` | Path to service account credentials file      |
+| `FUNCTION_IDENTITY`              | `""`             | No             | Yes                           | `my-project-123@appspot.gserviceaccount.com`         | Email address associated with service account |
+| `GCP_AUTH_PATH`                  | `"gcp"`          | No             | No                            | `"gcp2"`                                             | Vault GCP auth backend path                   |
+| `GOOGLE_APPLICATION_CREDENTIALS` | `""`             | No             | Yes                           | `service-account/my-project-123.serviceaccount.json` | Path to service account credentials file      |
 | `TRACE_ENABLED`                  | `"false"`        | No             | No                            | `true`                                               | Whether or to enable `opencensus` tracing     |
 | `TRACE_PREFIX`                   | `"vault"`        | No             | No                            | `my-company`                                         | Prefix added to name of tracing spans         |
 | `VAULT_ADDR`                     | `""`             | Yes            | Yes                           | `https://vault.my-company.com`                       | Vault address including protocol              |

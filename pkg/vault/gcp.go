@@ -64,7 +64,7 @@ func (a *gcpAuthClient) gcpSaAuth(vc *vaultClient) (*api.Secret, error) {
 	}
 
 	vaultResp, err := vc.client.Logical().Write(
-		"auth/gcp/login",
+		"auth/" + vc.config.gcpAuthPath + "/login",
 		map[string]interface{}{
 			"role": vc.config.vaultRole,
 			"jwt":  a.resp.SignedJwt,
