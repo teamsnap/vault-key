@@ -473,6 +473,8 @@ github.com/teamsnap/vault-key/pkg/vault v0.1.0 h1:n8mPfvs5IXmHcJvBNpVqR9eqKkfWqL
 github.com/teamsnap/vault-key/pkg/vault v0.1.0/go.mod h1:k8kUwE9FC+3Spt+P3Qyl48HPAS+g9wPulUZNwvEGTWI=
 github.com/teamsnap/vault-key/pkg/vault v0.1.4 h1:teGpUtAjg3aMU5/yi7dPUWb5qdIbXyssPxeR1uqmbAs=
 github.com/teamsnap/vault-key/pkg/vault v0.1.4/go.mod h1:GuO7aOleSM9wBd97Xq57yrs5wP09rdOR5L8TCNTDna4=
+github.com/teamsnap/vault-key/pkg/vault v0.1.5 h1:ezzZL/9nxEszzIiybAsSr2JgbmZ39PWvnuJG0ErLW28=
+github.com/teamsnap/vault-key/pkg/vault v0.1.5/go.mod h1:GuO7aOleSM9wBd97Xq57yrs5wP09rdOR5L8TCNTDna4=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=
 github.com/ugorji/go v1.1.2/go.mod h1:hnLbHMwcvSihnDhEfx2/BzKp2xb0Y+ErdfYcrs9tkJQ=
