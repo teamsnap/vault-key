@@ -1,6 +1,6 @@
 require 'ffi'
 require 'json'
-require 'OS'
+require 'os'
 
 module VaultNative
   extend FFI::Library
