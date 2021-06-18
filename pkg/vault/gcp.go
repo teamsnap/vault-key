@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/vault/api"
+	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 	"google.golang.org/api/iam/v1"
 )
@@ -17,10 +18,42 @@ type gcpAuthClient struct {
 }
 
 // NewAuthClient returns a new instance of an auth client
-func NewAuthClient() AuthClient {
-	a := &gcpAuthClient{}
+func NewGcpAuthClient() AuthClient {
+	return &gcpAuthClient{}
+}
 
-	return a
+func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
+	if vc.config.traceEnabled {
+		var span *trace.Span
+		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/github/vaultLogin", vc.config.tracePrefix))
+		defer span.End()
+	}
+
+	var err error
+	a.iamService, err = iam.NewService(vc.ctx)
+	if err != nil {
+		log.Debugf("initialze client: getting new iam service: %v", err)
+		return "", fmt.Errorf("getting new iam service: google: could not find default credentials")
+	}
+
+	log.Debug("Successfully created IAM client")
+
+	err = a.generateSignedJWT(vc.ctx, vc.config)
+	if err != nil {
+		log.Debugf("generating signed jwt: %v", err)
+		return "", fmt.Errorf("generating signed jwt, sigining jwt: Post")
+	}
+
+	log.Debug("Successfully generated signed JWT")
+
+	vaultResp, err := a.gcpSaAuth(vc)
+	if err != nil {
+		return "", err
+	}
+
+	log.Debug("Successfully logged into Vault with auth/gcp/login")
+
+	return vaultResp.Auth.ClientToken, nil
 }
 
 // generateSignedJWT returns a signed JWT response using IAM
@@ -64,7 +97,7 @@ func (a *gcpAuthClient) gcpSaAuth(vc *vaultClient) (*api.Secret, error) {
 	}
 
 	vaultResp, err := vc.client.Logical().Write(
-		"auth/" + vc.config.gcpAuthPath + "/login",
+		"auth/"+vc.config.gcpAuthPath+"/login",
 		map[string]interface{}{
 			"role": vc.config.vaultRole,
 			"jwt":  a.resp.SignedJwt,

@@ -12,18 +12,16 @@ import (
 )
 
 type vaultClient struct {
-	authClient AuthClient
-	client     *api.Client
-	config     *config
-	ctx        context.Context
+	client *api.Client
+	config *config
+	ctx    context.Context
 }
 
 // NewVaultClient configures and returns an initialized vault client.
 func NewVaultClient(ctx context.Context, a AuthClient, c *config) (Client, error) {
 	client := &vaultClient{
-		authClient: a,
-		config:     c,
-		ctx:        ctx,
+		config: c,
+		ctx:    ctx,
 	}
 
 	err := initClient(client)
@@ -56,7 +54,7 @@ func initClient(vc *vaultClient) error {
 		return fmt.Errorf("initializing new vault api client: %v", err)
 	}
 
-	token, err := vc.authClient.GetVaultToken(vc)
+	token, err := GetVaultToken(vc)
 	if err != nil {
 		return fmt.Errorf("getting vault api token from client: %v", err)
 	}
