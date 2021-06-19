@@ -11,6 +11,12 @@ import (
 	"go.opencensus.io/trace"
 )
 
+// Client is a vault api client that is authorized to get secrets out of a vault.
+type Client interface {
+	GetSecretFromVault(secret string) (map[string]string, error)
+	GetSecretVersionFromVault(secret string) (int64, error)
+}
+
 type vaultClient struct {
 	client *api.Client
 	config *config
@@ -54,7 +60,7 @@ func initClient(vc *vaultClient) error {
 		return fmt.Errorf("initializing new vault api client: %v", err)
 	}
 
-	token, err := GetVaultToken(vc)
+	token, err := NewVaultToken(vc)
 	if err != nil {
 		return fmt.Errorf("getting vault api token from client: %v", err)
 	}
