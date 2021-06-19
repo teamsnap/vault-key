@@ -11,12 +11,6 @@ import (
 	"go.opencensus.io/trace"
 )
 
-// Client is a vault api client that is authorized to get secrets out of a vault.
-type Client interface {
-	GetSecretFromVault(secret string) (map[string]string, error)
-	GetSecretVersionFromVault(secret string) (int64, error)
-}
-
 type vaultClient struct {
 	client *api.Client
 	config *config
@@ -24,7 +18,7 @@ type vaultClient struct {
 }
 
 // NewVaultClient configures and returns an initialized vault client.
-func NewVaultClient(ctx context.Context, a AuthClient, c *config) (Client, error) {
+func NewVaultClient(ctx context.Context, c *config) (*vaultClient, error) {
 	client := &vaultClient{
 		config: c,
 		ctx:    ctx,
@@ -69,9 +63,8 @@ func initClient(vc *vaultClient) error {
 	return err
 }
 
-// GetSecretFromVault takes a vault client, key name, and data name, and returns the
-// value returned from vault as a string.
-func (vc *vaultClient) GetSecretFromVault(secretName string) (map[string]string, error) {
+// SecretFromVault takes a secret name and returns the value returned from vault as a string.
+func (vc *vaultClient) SecretFromVault(secretName string) (map[string]string, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
 		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getSecretFromVault", vc.config.tracePrefix))
@@ -105,9 +98,8 @@ func (vc *vaultClient) GetSecretFromVault(secretName string) (map[string]string,
 	return secretMap, fmt.Errorf("converting secret data from Vault to a string for %s", secretName)
 }
 
-// GetSecretVersionFromVault takes a vault client, key name, and data name, and returns the
-// version of the Vault secret as an int.
-func (vc *vaultClient) GetSecretVersionFromVault(secretName string) (int64, error) {
+// SecretVersionFromVault takes a secret name and returns the version of the Vault secret as an int.
+func (vc *vaultClient) SecretVersionFromVault(secretName string) (int64, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
 		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getSecretFromVault", vc.config.tracePrefix))
