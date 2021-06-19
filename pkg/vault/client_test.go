@@ -65,7 +65,7 @@ func TestGoogleVaultClient(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewVaultClient(context.Background(), tt.auth, gcpConfig())
+			_, err := NewVaultClient(context.Background(), gcpConfig())
 			if err != nil && tt.expected != nil {
 				if err.Error() != tt.expected.Error() {
 					// This error happens in travis ci, not the iam error.
@@ -104,7 +104,7 @@ func TestGitHubVaultClient(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewVaultClient(context.Background(), tt.auth, ghConfig())
+			_, err := NewVaultClient(context.Background(), ghConfig())
 			if err != nil && tt.expected != nil {
 				if err.Error() != tt.expected.Error() {
 					// This error happens in travis ci, not the iam error.

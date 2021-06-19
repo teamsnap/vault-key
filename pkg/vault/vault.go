@@ -31,7 +31,7 @@ func NewAuthClient(c *config) AuthClient {
 	return nil
 }
 
-// NewVaultToken uses a service account to get a vault auth token
+// NewVaultToken uses a github token or service account to get a vault auth token
 func NewVaultToken(vc *vaultClient) (string, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
@@ -59,8 +59,7 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 		return fmt.Errorf("load client environment: %v", err)
 	}
 
-	auth := NewAuthClient(config)
-	vc, err := NewVaultClient(ctx, auth, config)
+	vc, err := NewVaultClient(ctx, config)
 
 	if err != nil {
 		return fmt.Errorf("error initializing vault client: %v", err)
@@ -103,8 +102,7 @@ func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, se
 		return fmt.Errorf("load client environment: %v", err)
 	}
 
-	auth := NewAuthClient(config)
-	vc, err := NewVaultClient(ctx, auth, config)
+	vc, err := NewVaultClient(ctx, config)
 
 	if config.traceEnabled {
 		var span *trace.Span

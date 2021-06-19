@@ -24,7 +24,7 @@ type vaultClient struct {
 }
 
 // NewVaultClient configures and returns an initialized vault client.
-func NewVaultClient(ctx context.Context, a AuthClient, c *config) (Client, error) {
+func NewVaultClient(ctx context.Context, c *config) (Client, error) {
 	client := &vaultClient{
 		config: c,
 		ctx:    ctx,
