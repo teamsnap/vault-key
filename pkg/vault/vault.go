@@ -16,12 +16,6 @@ type AuthClient interface {
 	GetVaultToken(vc *vaultClient) (string, error)
 }
 
-// Client is a vault api client that is authorized to get secrets out of a vault.
-type Client interface {
-	GetSecretFromVault(secret string) (map[string]string, error)
-	GetSecretVersionFromVault(secret string) (int64, error)
-}
-
 func NewAuthClient(c *config) AuthClient {
 	switch {
 	case len(c.githubToken) > 0:
@@ -37,8 +31,8 @@ func NewAuthClient(c *config) AuthClient {
 	return nil
 }
 
-// GetVaultToken uses a service account to get a vault auth token
-func GetVaultToken(vc *vaultClient) (string, error) {
+// NewVaultToken uses a service account to get a vault auth token
+func NewVaultToken(vc *vaultClient) (string, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
 		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getVaultToken", vc.config.tracePrefix))
