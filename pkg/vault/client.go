@@ -67,7 +67,7 @@ func initClient(vc *vaultClient) error {
 func (vc *vaultClient) SecretFromVault(secretName string) (map[string]string, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getSecretFromVault", vc.config.tracePrefix))
+		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/SecretFromVault", vc.config.tracePrefix))
 		defer span.End()
 	}
 
@@ -102,7 +102,7 @@ func (vc *vaultClient) SecretFromVault(secretName string) (map[string]string, er
 func (vc *vaultClient) SecretVersionFromVault(secretName string) (int64, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getSecretFromVault", vc.config.tracePrefix))
+		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/SecretVersionFromVault", vc.config.tracePrefix))
 		defer span.End()
 	}
 

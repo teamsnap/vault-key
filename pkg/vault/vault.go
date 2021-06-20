@@ -15,7 +15,7 @@ import (
 func NewVaultToken(vc *vaultClient) (string, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getVaultToken", vc.config.tracePrefix))
+		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/NewVaultToken", vc.config.tracePrefix))
 		defer span.End()
 	}
 

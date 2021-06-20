@@ -25,7 +25,7 @@ func NewGcpAuthClient() AuthClient {
 func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/github/vaultLogin", vc.config.tracePrefix))
+		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/gcp/GetVaultToken", vc.config.tracePrefix))
 		defer span.End()
 	}
 
