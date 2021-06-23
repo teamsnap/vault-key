@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	"os"
+
+	log "github.com/sirupsen/logrus"
 	"github.com/teamsnap/vault-key/pkg/k8s"
 	"github.com/teamsnap/vault-key/pkg/vault"
-	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 var env = map[string]map[string]string{}
@@ -32,7 +33,7 @@ func main() {
 	vault.GetSecrets(ctx, &env, envArr)
 
 	k8sSecret := &k8s.Secret{
-		Secrets: env[vaultSecret],
+		Secrets:   env[vaultSecret],
 		Namespace: k8sNamespace,
 	}
 
