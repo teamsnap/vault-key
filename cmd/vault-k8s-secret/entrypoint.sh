@@ -27,22 +27,12 @@ config_project () {
   fi
 }
 
-config_region () {
-  # us-east1
-  if [ -z "${GCLOUD_REGION}" ]; then
-    echo "GCLOUD_REGION environment variable is not set." > /dev/null 2>&1
-    exit 1
-  else
-    gcloud config set compute/region ${GCLOUD_REGION}
-  fi
-}
-
 config_location () {
   # us-east1
-  if [ -z "${GCLOUD_ZONE}" && -z "${GCLOUD_REGION}" ]; then
+  if [ -z "${GCLOUD_ZONE}" ] && [ -z "${GCLOUD_REGION}" ]; then
     echo "GCLOUD_ZONE and GCLOUD_REGION environment variables are not set. One is required." > /dev/null 2>&1
     exit 1
-  elif [ ! -z "${GCLOUD_REGION}"]
+  elif [ ! -z "${GCLOUD_REGION}" ]
   then
     gcloud config set compute/region ${GCLOUD_REGION}
   else
@@ -51,11 +41,10 @@ config_location () {
 }
 
 echo "Initializing gcloud..."
-config_auth && \
-config_project && \
-config_location && \
-config_region && \
-echo "Finished initializing gcloud!" && \
+config_project
+config_location
+config_auth
+echo "Finished initializing gcloud!"
 ./vault-k8s-secret
 
 exit 0
