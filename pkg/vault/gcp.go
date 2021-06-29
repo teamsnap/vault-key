@@ -18,17 +18,14 @@ type gcpAuthClient struct {
 }
 
 // NewAuthClient returns a new instance of an auth client
-func NewAuthClient() AuthClient {
-	a := &gcpAuthClient{}
-
-	return a
+func NewGcpAuthClient() AuthClient {
+	return &gcpAuthClient{}
 }
 
-// GetVaultToken uses a service account to get a vault auth token
 func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getVaultToken", vc.config.tracePrefix))
+		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/gcp/GetVaultToken", vc.config.tracePrefix))
 		defer span.End()
 	}
 
@@ -49,7 +46,7 @@ func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 
 	log.Debug("Successfully generated signed JWT")
 
-	vaultResp, err := a.openVault(vc)
+	vaultResp, err := a.gcpSaAuth(vc)
 	if err != nil {
 		return "", err
 	}
@@ -91,16 +88,16 @@ func (a *gcpAuthClient) generateSignedJWT(ctx context.Context, c *config) error 
 	return nil
 }
 
-// openVault takes signed JWT and sends login request to vault
-func (a *gcpAuthClient) openVault(vc *vaultClient) (*api.Secret, error) {
+// gcpSaAuth takes signed JWT and sends login request to vault
+func (a *gcpAuthClient) gcpSaAuth(vc *vaultClient) (*api.Secret, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/vaultLogin", vc.config.tracePrefix))
+		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/gcp/vaultLogin", vc.config.tracePrefix))
 		defer span.End()
 	}
 
 	vaultResp, err := vc.client.Logical().Write(
-		"auth/" + vc.config.gcpAuthPath + "/login",
+		"auth/"+vc.config.gcpAuthPath+"/login",
 		map[string]interface{}{
 			"role": vc.config.vaultRole,
 			"jwt":  a.resp.SignedJwt,

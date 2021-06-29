@@ -12,18 +12,16 @@ import (
 )
 
 type vaultClient struct {
-	authClient AuthClient
-	client     *api.Client
-	config     *config
-	ctx        context.Context
+	client *api.Client
+	config *config
+	ctx    context.Context
 }
 
 // NewVaultClient configures and returns an initialized vault client.
-func NewVaultClient(ctx context.Context, a AuthClient, c *config) (Client, error) {
+func NewVaultClient(ctx context.Context, c *config) (*vaultClient, error) {
 	client := &vaultClient{
-		authClient: a,
-		config:     c,
-		ctx:        ctx,
+		config: c,
+		ctx:    ctx,
 	}
 
 	err := initClient(client)
@@ -56,25 +54,20 @@ func initClient(vc *vaultClient) error {
 		return fmt.Errorf("initializing new vault api client: %v", err)
 	}
 
-	token, err := vc.authClient.GetVaultToken(vc)
+	token, err := NewVaultToken(vc)
 	if err != nil {
-		return err
+		return fmt.Errorf("getting vault api token from client: %v", err)
 	}
 
 	vc.client.SetToken(token)
-	if err != nil {
-		return fmt.Errorf("Error setting vault token: %v", err)
-	}
-
 	return err
 }
 
-// GetSecretFromVault takes a vault client, key name, and data name, and returns the
-// value returned from vault as a string.
-func (vc *vaultClient) GetSecretFromVault(secretName string) (map[string]string, error) {
+// SecretFromVault takes a secret name and returns the value returned from vault as a string.
+func (vc *vaultClient) SecretFromVault(secretName string) (map[string]string, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getSecretFromVault", vc.config.tracePrefix))
+		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/SecretFromVault", vc.config.tracePrefix))
 		defer span.End()
 	}
 
@@ -105,12 +98,11 @@ func (vc *vaultClient) GetSecretFromVault(secretName string) (map[string]string,
 	return secretMap, fmt.Errorf("converting secret data from Vault to a string for %s", secretName)
 }
 
-// GetSecretVersionFromVault takes a vault client, key name, and data name, and returns the
-// version of the Vault secret as an int.
-func (vc *vaultClient) GetSecretVersionFromVault(secretName string) (int64, error) {
+// SecretVersionFromVault takes a secret name and returns the version of the Vault secret as an int.
+func (vc *vaultClient) SecretVersionFromVault(secretName string) (int64, error) {
 	if vc.config.traceEnabled {
 		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/getSecretFromVault", vc.config.tracePrefix))
+		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/SecretVersionFromVault", vc.config.tracePrefix))
 		defer span.End()
 	}
 
