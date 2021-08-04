@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"path/filepath"
@@ -18,12 +19,11 @@ import (
 
 // Secret holds a map of the secrets that need to be created in Kubernetes
 type Secret struct {
-  Secrets map[string]string
+	Secrets   map[string]string
 	Namespace string
 }
 
-// ApplySecret takes a Vault secret and k8s namespace and creates the k8s secret
-// based on the data
+// ApplySecret takes a Vault secret and k8s namespace and creates the k8s secret based on the data
 func ApplySecret(vaultSecret *Secret) {
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
@@ -31,55 +31,58 @@ func ApplySecret(vaultSecret *Secret) {
 	} else {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
-	flag.Parse()
 
+	flag.Parse()
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
 		panic(err)
 	}
+
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		panic(err)
 	}
 
-  secretsClient := clientset.CoreV1().Secrets(vaultSecret.Namespace)
+	secretData := map[string][]byte{}
+	for key, val := range vaultSecret.Secrets {
+		secretData[key] = []byte(val)
+	}
 
-  secretData := map[string][]byte{}
+	secret := &apiv1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "vault-secret",
+		},
+		Data: secretData,
+	}
 
-  for key, val := range vaultSecret.Secrets {
-    secretData[key] = []byte(val)
-  }
+	client := client{
+		clientset: clientset,
+	}
 
-  secret := &apiv1.Secret{
-    ObjectMeta: metav1.ObjectMeta{
-      Name: "vault-secret",
-    },
-    Data: secretData,
-  }
+	ctx := context.Background()
+	cs, err := client.createSecret(ctx, secret)
+	if err != nil {
+		fmt.Println(err)
+		err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			// Retrieve the latest version of Secret before attempting update
+			// RetryOnConflict uses exponential backoff to avoid exhausting the apiserver
+			gs, err := client.getSecret(ctx, cs)
+			if err != nil {
+				panic(err)
+			}
 
-  // Create Secret
-  fmt.Println("Creating secret...")
-  result, err := secretsClient.Create(secret)
-  if err != nil {
-    fmt.Println("error, secret probably already exists", err)
-  }
-  fmt.Println(result)
+			err = client.updateSecret(ctx, gs)
+			if err != nil {
+				panic(err)
+			}
 
-  retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-    // Retrieve the latest version of Secret before attempting update
-    // RetryOnConflict uses exponential backoff to avoid exhausting the apiserver
-    result, getErr := secretsClient.Get("vault-secret", metav1.GetOptions{})
-    if getErr != nil {
-      panic(fmt.Errorf("Failed to get latest version of Secret: %v", getErr))
-    }
+			return err
+		})
 
-    result.Data = secretData
-    _, updateErr := secretsClient.Update(result)
-    return updateErr
-  })
+		if err != nil {
+			fmt.Printf("apply secret failed: %s", err)
+		}
+	}
 
-  if retryErr != nil {
-    panic(fmt.Errorf("Update secret failed: %v", retryErr))
-  }
-  fmt.Println("Updated secret...")
+	fmt.Println("applied secret...")
 }
