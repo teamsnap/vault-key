@@ -14,7 +14,10 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.13
-      - name: Test
+          go-version: 1.16
+      - name: Test Pkg Vault
         run: |
           cd ./pkg/vault && go test -v -cover -race ./...
+      - name: Test Pkg k8s
+        run: |
+          cd ./pkg/k8s && go test -v -cover -race ./...
