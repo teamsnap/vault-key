@@ -3,7 +3,7 @@ package k8s
 import (
 	"context"
 	"flag"
-	"fmt"
+	"log"
 	"path/filepath"
 
 	apiv1 "k8s.io/api/core/v1"
@@ -11,7 +11,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"k8s.io/client-go/util/retry"
 
 	// enable gcp auth for k8s client
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -55,34 +54,13 @@ func ApplySecret(vaultSecret *Secret) {
 		Data: secretData,
 	}
 
-	client := client{
+	client := &client{
 		clientset: clientset,
 	}
 
 	ctx := context.Background()
-	cs, err := client.createSecret(ctx, secret)
+	client.do(ctx, secret)
 	if err != nil {
-		fmt.Println(err)
-		err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
-			// Retrieve the latest version of Secret before attempting update
-			// RetryOnConflict uses exponential backoff to avoid exhausting the apiserver
-			gs, err := client.getSecret(ctx, cs)
-			if err != nil {
-				panic(err)
-			}
-
-			err = client.updateSecret(ctx, gs)
-			if err != nil {
-				panic(err)
-			}
-
-			return err
-		})
-
-		if err != nil {
-			fmt.Printf("apply secret failed: %s", err)
-		}
+		log.Printf("apply secret failed: %s", err)
 	}
-
-	fmt.Println("applied secret...")
 }
