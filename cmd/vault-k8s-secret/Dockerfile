@@ -1,9 +1,8 @@
-FROM golang:1.13.1-stretch
+FROM golang:1.16.6-stretch
 
 ENV \
  GOARCH="amd64" \
- PATH="$PATH:/go/bin" \
- GO111MODULE=on
+ PATH="$PATH:/go/bin"
 
 RUN apt-get update \
  && apt-get install -y \
