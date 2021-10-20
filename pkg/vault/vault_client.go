@@ -146,13 +146,15 @@ func (vc *vaultClient) EnginesFromVault(path string) ([]string, error) {
 
 	result := []string{}
 
-	for key, value := range engineData {
-		fmt.Printf("key: %s, value: %v \n", key, value)
-		result = append(result, value.(string))
+	for _, value := range engineData {
+		switch v := value.(type) {
+		case string:
+			result = append(result, v)
+		default:
+			return nil, fmt.Errorf("unexpected type, expected string, got: %T, value: %v", v, result)
+		}
 	}
-
 	return result, nil
-
 }
 
 func extractListData(secret *api.Secret) ([]interface{}, bool) {
