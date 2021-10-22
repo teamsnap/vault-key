@@ -114,7 +114,7 @@ func (vc *vaultClient) SecretVersionFromVault(secretName string) (int64, error) 
 		return version, fmt.Errorf("reading secret from Vault for %s", secretName)
 	}
 
-	version, err = secretValues.Data["metadata"].(map[string]interface{})["version"].(json.Number).Int64()
+	version, err = secretValues.Data["current_version"].(json.Number).Int64()
 	if err != nil {
 		log.Error(fmt.Sprintf("Error converting secret version to integer for %s: %v", secretName, err))
 		return version, fmt.Errorf("converting secret version to integer for %s: %v", secretName, err)

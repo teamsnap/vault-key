@@ -6,7 +6,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/vault/api"
+	"github.com/matryer/is"
+
+	kv "github.com/hashicorp/vault-plugin-secrets-kv"
 	vaulthttp "github.com/hashicorp/vault/http"
+	"github.com/hashicorp/vault/sdk/logical"
 	hashivault "github.com/hashicorp/vault/vault"
 )
 
@@ -150,7 +156,7 @@ func TestGitHubGetSecretFromVault(t *testing.T) {
 
 func testValidClient(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
-		path := "secret/test/data/"
+		path := "kv/data/foo"
 		secrets, err := vc.SecretFromVault(path)
 		if err != nil {
 			t.Errorf("get secret from vault, %v", err)
@@ -169,46 +175,60 @@ func testValidClient(vc *vaultClient) func(*testing.T) {
 
 func testVersionedSecrets(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
-		path := "secret/test/data/"
+		is := is.New(t)
+		path := "kv/metadata/foo"
+
 		version, err := vc.SecretVersionFromVault(path)
 		if err != nil {
 			t.Errorf("get versioned secret from vault, %v", err)
 		}
 
-		if version != 2 {
-			t.Errorf("Actual: %v, Expected: %v", version, 2)
-		}
-
+		is.Equal(version, int64(1))
 	}
 }
 
 func tesetInvalidPath(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
+		is := is.New(t)
 		path := "foo"
 		_, err := vc.SecretFromVault(path)
 
-		expected := errors.New("secret values returned from Vault are <nil> for foo")
-		if err.Error() != expected.Error() {
-			t.Errorf("Expected invalid path to raise error: %v", err)
-		}
+		is.Equal(err != nil, true)
 	}
 }
 
 func createTestVault(t *testing.T) *hashivault.TestCluster {
 	t.Helper()
 
-	coreConfig := &hashivault.CoreConfig{}
+	coreConfig := &hashivault.CoreConfig{
+		LogicalBackends: map[string]logical.Factory{
+			"kv": kv.Factory,
+		},
+	}
+
 	cluster := hashivault.NewTestCluster(t, coreConfig, &hashivault.TestClusterOptions{
 		HandlerFunc: vaulthttp.Handler,
+		Logger:      hclog.NewNullLogger(),
 	})
+
 	cluster.Start()
 
 	secrets := map[string]interface{}{
-		"data":     map[string]interface{}{secretKey: secretValue},
-		"metadata": map[string]interface{}{"version": 2},
+		"data": map[string]interface{}{secretKey: secretValue},
 	}
+
+	// Create KV V2 mount
+	if err := cluster.Cores[0].Client.Sys().Mount("kv", &api.MountInput{
+		Type: "kv",
+		Options: map[string]string{
+			"version": "2",
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
 	// Setup required secrets, policies, etc.
-	_, err := cluster.Cores[0].Client.Logical().Write("secret/test/data", secrets)
+	_, err := cluster.Cores[0].Client.Logical().Write("kv/data/foo", secrets)
 	if err != nil {
 		t.Fatal(err)
 	}
