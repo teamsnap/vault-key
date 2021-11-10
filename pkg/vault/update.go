@@ -4,16 +4,11 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/vault/api"
-	"go.opencensus.io/trace"
 )
 
 // Update takes a given key for an engine, and modifies its value in vault.
 func (vc *vaultClient) Update(engine, key, value string) (*api.Secret, error) {
-	if vc.config.traceEnabled {
-		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/Update", vc.config.tracePrefix))
-		defer span.End()
-	}
+	vc.tracer.trace(fmt.Sprintf("%s/Update", vc.config.tracePrefix))
 
 	data, err := vc.SecretFromVault(engine)
 	if err != nil {

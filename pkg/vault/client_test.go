@@ -129,6 +129,7 @@ func TestGoogleGetSecretFromVault(t *testing.T) {
 		ctx:    context.Background(),
 		client: rootVaultClient,
 	}
+	vc.tracer = vc
 
 	t.Run("valid client", testValidClient(vc))
 	t.Run("invalid path", tesetInvalidPath(vc))
@@ -148,6 +149,7 @@ func TestGitHubGetSecretFromVault(t *testing.T) {
 		ctx:    context.Background(),
 		client: rootVaultClient,
 	}
+	vc.tracer = vc
 
 	t.Run("valid client", testValidClient(vc))
 	t.Run("invalid path", tesetInvalidPath(vc))

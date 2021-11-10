@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/vault/api"
 	"github.com/matryer/is"
 )
 
@@ -19,6 +20,7 @@ func TestCreateSecret(t *testing.T) {
 		ctx:    context.Background(),
 		client: rootVaultClient,
 	}
+	vc.tracer = vc
 
 	t.Run("create new secret", create_new(vc))
 	t.Run("create new secret when secret exits", create_existing(vc))
@@ -63,4 +65,8 @@ func create_missingPath(vc *vaultClient) func(*testing.T) {
 
 		is.Equal(err != nil, true)
 	}
+}
+
+type client interface {
+	Update(string, string, string) (*api.Secret, error)
 }

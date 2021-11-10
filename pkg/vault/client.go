@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 
 	"github.com/hashicorp/vault/api"
-	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 )
 
@@ -15,6 +14,7 @@ type vaultClient struct {
 	client *api.Client
 	config *config
 	ctx    context.Context
+	tracer
 }
 
 // NewVaultClient configures and returns an initialized vault client.
@@ -23,6 +23,7 @@ func NewVaultClient(ctx context.Context, c *config) (*vaultClient, error) {
 		config: c,
 		ctx:    ctx,
 	}
+	client.tracer = client
 
 	err := initClient(client)
 	if err != nil {
@@ -75,12 +76,10 @@ func (vc *vaultClient) SecretFromVault(secretName string) (map[string]string, er
 
 	secretValues, err := vc.client.Logical().Read(secretName)
 	if err != nil {
-		log.Error(fmt.Sprintf("reading secret from Vault: %v", err))
 		return secretMap, fmt.Errorf("reading secret from Vault for %s", secretName)
 	}
 
 	if secretValues == nil {
-		log.Error("secret values returned from Vault are <nil> for " + secretName)
 		return secretMap, fmt.Errorf("secret values returned from Vault are <nil> for %s", secretName)
 	}
 
@@ -94,7 +93,6 @@ func (vc *vaultClient) SecretFromVault(secretName string) (map[string]string, er
 		return secretMap, nil
 	}
 
-	log.Errorf("%T %#v\n", secretValues.Data["data"], secretValues.Data["data"])
 	return secretMap, fmt.Errorf("converting secret data from Vault to a string for %s", secretName)
 }
 
@@ -110,15 +108,31 @@ func (vc *vaultClient) SecretVersionFromVault(secretName string) (int64, error) 
 
 	secretValues, err := vc.client.Logical().Read(secretName)
 	if err != nil {
-		log.Error(fmt.Sprintf("Error reading secret from Vault: %v", err))
 		return version, fmt.Errorf("reading secret from Vault for %s", secretName)
 	}
 
 	version, err = secretValues.Data["current_version"].(json.Number).Int64()
 	if err != nil {
-		log.Error(fmt.Sprintf("Error converting secret version to integer for %s: %v", secretName, err))
 		return version, fmt.Errorf("converting secret version to integer for %s: %v", secretName, err)
 	}
 
 	return version, nil
+}
+
+type tracer interface {
+	trace(string) func()
+}
+
+func (vc *vaultClient) trace(name string) func() {
+	if !vc.config.traceEnabled {
+		return func() {}
+	}
+
+	var span *trace.Span
+	vc.ctx, span = trace.StartSpan(
+		vc.ctx,
+		name,
+	)
+
+	return func() { defer span.End() }
 }

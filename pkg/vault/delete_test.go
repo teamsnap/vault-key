@@ -19,6 +19,7 @@ func TestDelete(t *testing.T) {
 		ctx:    context.Background(),
 		client: rootVaultClient,
 	}
+	vc.tracer = vc
 
 	t.Run("delete secret that does not exist", delete_new(vc))
 	t.Run("delete secret", delete_existing(vc))

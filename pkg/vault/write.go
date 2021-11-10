@@ -4,15 +4,10 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/vault/api"
-	"go.opencensus.io/trace"
 )
 
 func (vc *vaultClient) write(engine string, m map[string]string) (*api.Secret, error) {
-	if vc.config.traceEnabled {
-		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/Write", vc.config.tracePrefix))
-		defer span.End()
-	}
+	vc.tracer.trace(fmt.Sprintf("%s/write", vc.config.tracePrefix))
 
 	data := make(map[string]interface{}, len(m))
 	for k, v := range m {

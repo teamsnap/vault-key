@@ -4,16 +4,11 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/vault/api"
-	"go.opencensus.io/trace"
 )
 
 // Delete takes a given key for an engine, and removes the key/value pair from vault.
 func (vc *vaultClient) Delete(engine, key string) (*api.Secret, error) {
-	if vc.config.traceEnabled {
-		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/Delete", vc.config.tracePrefix))
-		defer span.End()
-	}
+	vc.tracer.trace(fmt.Sprintf("%s/Delete", vc.config.tracePrefix))
 
 	res, err := vc.SecretFromVault(engine)
 	if err != nil {

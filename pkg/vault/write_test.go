@@ -20,6 +20,7 @@ func TestWriteSecret(t *testing.T) {
 		ctx:    context.Background(),
 		client: rootVaultClient,
 	}
+	vc.tracer = vc
 
 	t.Run("write new secret", write_new(vc))
 	t.Run("write new secret when secret exits", write_existing(vc))

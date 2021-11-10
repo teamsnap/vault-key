@@ -4,16 +4,11 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/vault/api"
-	"go.opencensus.io/trace"
 )
 
 // Create takes a given key for an engine, and adds a new key/value pair in vault.
 func (vc *vaultClient) Create(engine, key, value string) (*api.Secret, error) {
-	if vc.config.traceEnabled {
-		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/Create", vc.config.tracePrefix))
-		defer span.End()
-	}
+	vc.tracer.trace(fmt.Sprintf("%s/Create", vc.config.tracePrefix))
 
 	data, err := vc.SecretFromVault(engine)
 	if err != nil {

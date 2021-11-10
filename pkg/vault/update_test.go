@@ -20,6 +20,7 @@ func TestUpdate(t *testing.T) {
 		ctx:    context.Background(),
 		client: rootVaultClient,
 	}
+	vc.tracer = vc
 
 	t.Run("update secret that does not exist", update_new(vc))
 	t.Run("update secret", update_existing(vc))
