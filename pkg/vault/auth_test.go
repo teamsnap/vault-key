@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/vault/api"
+	"github.com/matryer/is"
 )
 
 func gcpConfig(t *testing.T) *config {
@@ -72,41 +73,14 @@ func TestGoogleVaultClient(t *testing.T) {
 }
 
 func TestGitHubVaultClient(t *testing.T) {
-	tests := []struct {
-		name     string
-		expected interface{}
-	}{
-		{
-			name:     "valid auth client",
-			expected: nil,
-		}, {
-			name:     "invalid auth client",
-			expected: errors.New("super error"),
-		},
-	}
-
+	is := is.New(t)
 	loginServer := vaultLoginServer()
 	defer loginServer.Close()
 
 	os.Setenv("VAULT_ADDR", loginServer.URL)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewVaultClient(context.Background(), githubConfig(t))
-			if err != nil && tt.expected != nil {
-				_, typ_err := tt.expected.(error)
-				if err != nil && !typ_err {
-					t.Errorf("Actual: %q. Expected: %q", err, tt.expected)
-				}
-			}
-
-			if err == nil {
-				if tt.expected != nil {
-					t.Errorf("Actual: %q. Expected: %q", err, tt.expected)
-				}
-			}
-		})
-	}
+	_, err := NewVaultClient(context.Background(), githubConfig(t))
+	is.NoErr(err)
 }
 
 func vaultLoginServer() *httptest.Server {
@@ -115,6 +89,22 @@ func vaultLoginServer() *httptest.Server {
 			json.NewEncoder(w).Encode(api.Secret{
 				Auth: &api.SecretAuth{ClientToken: "vault-test-token"},
 			})
+			return
+		}
+
+		switch r.Method {
+		case http.MethodGet:
+			json.NewEncoder(w).Encode(
+				&api.Secret{
+					Data: map[string]interface{}{
+						"data":            map[string]interface{}{"my-key": "bar"},
+						"current_version": 1,
+					},
+				},
+			)
+		case http.MethodPost, http.MethodPut:
+			var incoming map[string]interface{}
+			json.NewDecoder(r.Body).Decode(&incoming)
 		}
 	}))
 }

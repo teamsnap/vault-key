@@ -2,6 +2,7 @@ package vault
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/matryer/is"
@@ -108,14 +109,17 @@ func test_newGCPVaultTokenTrace(vc *vaultClient) func(*testing.T) {
 
 		val, ok := vc.tracer.(*mockTracer)
 		is.Equal(ok, true)
-		is.Equal(val.spans, map[string]bool{"vault/NewVaultToken": true, "vault/gcp/GetVaultToken": true})
-
+		is.Equal(val.spans, map[string]bool{"vault/NewVaultToken": true, "vault/gcp/GetVaultToken": true, "vault/gcp/generateSignedJWT": true})
 	}
 }
 func test_newGithubVaultTokenTrace(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
+		loginServer := vaultLoginServer()
+		defer loginServer.Close()
+
+		os.Setenv("VAULT_ADDR", loginServer.URL)
 
 		NewVaultToken(vc)
 		// _, err := NewVaultToken(vc)
