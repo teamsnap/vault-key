@@ -35,7 +35,7 @@ func (a *githubAuthClient) githubVaultAuth(vc *vaultClient) (*api.Secret, error)
 		})
 
 	if err != nil {
-		return nil, fmt.Errorf("logging into vault with github:%v", err)
+		return nil, fmt.Errorf("logging into vault with github:%w", err)
 	}
 
 	return vaultResp, nil

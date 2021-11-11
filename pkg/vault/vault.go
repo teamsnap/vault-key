@@ -31,12 +31,12 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 
 	config, err := loadVaultEnvironment()
 	if err != nil {
-		return fmt.Errorf("load client environment: %v", err)
+		return fmt.Errorf("load client environment: %w", err)
 	}
 
 	vc, err := NewVaultClient(ctx, config)
 	if err != nil {
-		return fmt.Errorf("error initializing vault client: %v", err)
+		return fmt.Errorf("error initializing vault client: %w", err)
 	}
 
 	vc.tracer.trace(fmt.Sprintf("%s/GetSecrets", vc.config.tracePrefix))
@@ -44,7 +44,7 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 	for _, secretName := range secretNames {
 		secret, err := vc.SecretFromVault(secretName)
 		if err != nil {
-			return fmt.Errorf("getting secret: %v", err)
+			return fmt.Errorf("getting secret: %w", err)
 		}
 
 		(*secretValues)[secretName] = secret
@@ -67,12 +67,12 @@ func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, se
 
 	config, err := loadVaultEnvironment()
 	if err != nil {
-		return fmt.Errorf("load client environment: %v", err)
+		return fmt.Errorf("load client environment: %w", err)
 	}
 
 	vc, err := NewVaultClient(ctx, config)
 	if err != nil {
-		return fmt.Errorf("error initializing vault client: %v", err)
+		return fmt.Errorf("error initializing vault client: %w", err)
 	}
 
 	vc.tracer.trace(fmt.Sprintf("%s/GetSecretVersions", vc.config.tracePrefix))
@@ -80,7 +80,7 @@ func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, se
 	for _, secretName := range secretNames {
 		secretVersion, err := vc.SecretVersionFromVault(secretName)
 		if err != nil {
-			return fmt.Errorf("getting secret version: %v", err)
+			return fmt.Errorf("getting secret version: %w", err)
 		}
 
 		(*secretVersions)[secretName] = secretVersion

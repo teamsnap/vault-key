@@ -27,7 +27,7 @@ func NewVaultClient(ctx context.Context, c *config) (*vaultClient, error) {
 
 	err := initClient(client)
 	if err != nil {
-		return nil, fmt.Errorf("initialze client: %v", err)
+		return nil, fmt.Errorf("initialze client: %w", err)
 	}
 
 	return client, nil
@@ -41,19 +41,19 @@ func initClient(vc *vaultClient) error {
 
 	vaultAddr, err := getEncrEnvVar(vc.ctx, "VAULT_ADDR")
 	if err != nil {
-		return fmt.Errorf("vault address: %v", err)
+		return fmt.Errorf("vault address: %w", err)
 	}
 
 	vc.client, err = api.NewClient(&api.Config{
 		Address: vaultAddr,
 	})
 	if err != nil {
-		return fmt.Errorf("initializing new vault api client: %v", err)
+		return fmt.Errorf("initializing new vault api client: %w", err)
 	}
 
 	token, err := NewVaultToken(vc)
 	if err != nil {
-		return fmt.Errorf("getting vault api token from client: %v", err)
+		return fmt.Errorf("getting vault api token from client: %w", err)
 	}
 
 	vc.client.SetToken(token)

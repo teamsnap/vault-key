@@ -25,7 +25,7 @@ func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 	var err error
 	a.iamService, err = iam.NewService(vc.ctx)
 	if err != nil {
-		return "", fmt.Errorf("getting new iam service: google: could not find default credentials")
+		return "", fmt.Errorf("getting new iam service: %w", err)
 	}
 
 	err = a.generateSignedJWT(vc)
@@ -54,7 +54,7 @@ func (a *gcpAuthClient) generateSignedJWT(vc *vaultClient) error {
 
 	payloadBytes, err := json.Marshal(jwtPayload)
 	if err != nil {
-		return fmt.Errorf("marshaling payload: %v", err)
+		return fmt.Errorf("marshaling payload: %w", err)
 	}
 
 	signJwtReq := &iam.SignJwtRequest{
@@ -63,7 +63,7 @@ func (a *gcpAuthClient) generateSignedJWT(vc *vaultClient) error {
 
 	a.resp, err = a.iamService.Projects.ServiceAccounts.SignJwt(resourceName, signJwtReq).Do()
 	if err != nil {
-		return fmt.Errorf("sigining jwt: %v", err)
+		return fmt.Errorf("sigining jwt: %w", err)
 	}
 
 	return nil
@@ -81,7 +81,7 @@ func (a *gcpAuthClient) gcpSaAuth(vc *vaultClient) (*api.Secret, error) {
 		})
 
 	if err != nil {
-		return nil, fmt.Errorf("logging into vault:%v", err)
+		return nil, fmt.Errorf("logging into vault:%w", err)
 	}
 
 	return vaultResp, nil
