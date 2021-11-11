@@ -17,7 +17,7 @@ func (m *mockTracer) trace(name string) func() {
 	return func() {}
 }
 func TestTracer(t *testing.T) {
-	secretKey, secretValue = "existing-key", "existing-value"
+	secretKey, secretValue, secretEngine = "existing-key", "foo", "kv/data/trace/foo"
 
 	cluster := createTestVault(t)
 	defer cluster.Cleanup()
@@ -36,7 +36,7 @@ func TestTracer(t *testing.T) {
 
 func test_createTrace(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
-		engine, k, v := "kv/data/create/foo", "new-key", "new-value"
+		engine, k, v := secretEngine, "new-key", secretValue
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
 
@@ -51,7 +51,8 @@ func test_createTrace(vc *vaultClient) func(*testing.T) {
 
 func test_deleteTrace(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
-		engine, k := "kv/data/foo", secretKey
+		engine, k := secretEngine, secretKey
+
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
 
@@ -66,7 +67,7 @@ func test_deleteTrace(vc *vaultClient) func(*testing.T) {
 
 func test_updateTrace(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
-		engine, k, v := "kv/data/foo", secretKey, secretValue
+		engine, k, v := secretEngine, secretKey, secretValue
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
 

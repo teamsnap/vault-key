@@ -8,7 +8,7 @@ import (
 )
 
 func TestDelete(t *testing.T) {
-	secretKey, secretValue = "deletable-key", "foo"
+	secretKey, secretValue, secretEngine = "deletable-key", "foo", "kv/data/delete/foo"
 
 	cluster := createTestVault(t)
 	defer cluster.Cleanup()
@@ -30,9 +30,9 @@ func delete_new(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
 		is := is.New(t)
 
-		engine, k := "kv/data/foo", "new-key"
+		engine, k := secretEngine, "new-key"
 		_, err := vc.Delete(engine, k)
-		is.Equal(err != nil, true)
+		is.True(err != nil)
 	}
 }
 
@@ -40,12 +40,12 @@ func delete_existing(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
 		is := is.New(t)
 
-		engine, k := "kv/data/foo", secretKey
+		engine, k := secretEngine, secretKey
 		_, err := vc.Delete(engine, k)
 		is.NoErr(err)
 
 		secret, err := vc.SecretFromVault(engine + "/" + k)
-		is.Equal(err != nil, true)
+		is.True(err != nil)
 		_, ok := secret[k]
 		is.Equal(false, ok)
 	}
@@ -55,8 +55,8 @@ func delete_missingPath(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
 		is := is.New(t)
 
-		engine, k := "kv/data/delete/foo", secretKey
+		engine, k := "kv/data/delete/missing/foo", secretKey
 		_, err := vc.Delete(engine, k)
-		is.Equal(err != nil, true)
+		is.True(err != nil)
 	}
 }
