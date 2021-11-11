@@ -2,9 +2,15 @@ package vault
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
+
+	"github.com/hashicorp/vault/api"
 )
 
 func gcpConfig(t *testing.T) *config {
@@ -46,6 +52,8 @@ func TestGoogleVaultClient(t *testing.T) {
 		},
 	}
 
+	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "test/default_credentials.json")
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := NewVaultClient(context.Background(), gcpConfig(t))
@@ -77,6 +85,11 @@ func TestGitHubVaultClient(t *testing.T) {
 		},
 	}
 
+	loginServer := vaultLoginServer()
+	defer loginServer.Close()
+
+	os.Setenv("VAULT_ADDR", loginServer.URL)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := NewVaultClient(context.Background(), githubConfig(t))
@@ -94,4 +107,14 @@ func TestGitHubVaultClient(t *testing.T) {
 			}
 		})
 	}
+}
+
+func vaultLoginServer() *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/login") {
+			json.NewEncoder(w).Encode(api.Secret{
+				Auth: &api.SecretAuth{ClientToken: "vault-test-token"},
+			})
+		}
+	}))
 }
