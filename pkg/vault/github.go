@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/vault/api"
-	"go.opencensus.io/trace"
 )
 
 type githubAuthClient struct {
@@ -15,6 +14,8 @@ func NewGithubAuthClient() AuthClient {
 	return &githubAuthClient{}
 }
 func (a *githubAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
+	vc.tracer.trace(fmt.Sprintf("%s/github/GetVaultToken", vc.config.tracePrefix))
+
 	vaultResp, err := a.githubVaultAuth(vc)
 	if err != nil {
 		return "", err
@@ -25,11 +26,7 @@ func (a *githubAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 
 // githubVaultAuth takes GitHub access token and sends login request to vault
 func (a *githubAuthClient) githubVaultAuth(vc *vaultClient) (*api.Secret, error) {
-	if vc.config.traceEnabled {
-		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/github/vaultLogin", vc.config.tracePrefix))
-		defer span.End()
-	}
+	vc.tracer.trace(fmt.Sprintf("%s/github/vaultLogin", vc.config.tracePrefix))
 
 	vaultResp, err := vc.client.Logical().Write(
 		"auth/github/login",

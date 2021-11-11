@@ -8,16 +8,11 @@ import (
 
 	"github.com/GoogleCloudPlatform/berglas/pkg/berglas"
 	log "github.com/sirupsen/logrus"
-	"go.opencensus.io/trace"
 )
 
 // NewVaultToken uses a github token or service account to get a vault auth token
 func NewVaultToken(vc *vaultClient) (string, error) {
-	if vc.config.traceEnabled {
-		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/NewVaultToken", vc.config.tracePrefix))
-		defer span.End()
-	}
+	vc.tracer.trace(fmt.Sprintf("%s/NewVaultToken", vc.config.tracePrefix))
 
 	return NewAuthClient(vc.config).GetVaultToken(vc)
 }
@@ -40,16 +35,11 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 	}
 
 	vc, err := NewVaultClient(ctx, config)
-
 	if err != nil {
 		return fmt.Errorf("error initializing vault client: %v", err)
 	}
 
-	if config.traceEnabled {
-		var span *trace.Span
-		_, span = trace.StartSpan(ctx, fmt.Sprintf("%s/GetSecrets", config.tracePrefix))
-		defer span.End()
-	}
+	vc.tracer.trace(fmt.Sprintf("%s/GetSecrets", vc.config.tracePrefix))
 
 	for _, secretName := range secretNames {
 		secret, err := vc.SecretFromVault(secretName)
@@ -81,12 +71,11 @@ func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, se
 	}
 
 	vc, err := NewVaultClient(ctx, config)
-
-	if config.traceEnabled {
-		var span *trace.Span
-		ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/GetSecrets", config.tracePrefix))
-		defer span.End()
+	if err != nil {
+		return fmt.Errorf("error initializing vault client: %v", err)
 	}
+
+	vc.tracer.trace(fmt.Sprintf("%s/GetSecretVersions", vc.config.tracePrefix))
 
 	for _, secretName := range secretNames {
 		secretVersion, err := vc.SecretVersionFromVault(secretName)
