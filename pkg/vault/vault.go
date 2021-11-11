@@ -47,13 +47,11 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 
 	if config.traceEnabled {
 		var span *trace.Span
-		ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/GetSecrets", config.tracePrefix))
+		_, span = trace.StartSpan(ctx, fmt.Sprintf("%s/GetSecrets", config.tracePrefix))
 		defer span.End()
 	}
 
 	for _, secretName := range secretNames {
-		log.Debug(fmt.Sprintf("secret= %s", secretNames))
-
 		secret, err := vc.SecretFromVault(secretName)
 		if err != nil {
 			return fmt.Errorf("getting secret: %v", err)
@@ -91,8 +89,6 @@ func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, se
 	}
 
 	for _, secretName := range secretNames {
-		log.Debug(fmt.Sprintf("secret= %s", secretNames))
-
 		secretVersion, err := vc.SecretVersionFromVault(secretName)
 		if err != nil {
 			return fmt.Errorf("getting secret version: %v", err)

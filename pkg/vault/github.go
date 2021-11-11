@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/vault/api"
-	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 )
 
@@ -20,8 +19,6 @@ func (a *githubAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	log.Debug("Successfully logged into Vault with auth/github/login")
 
 	return vaultResp.Auth.ClientToken, nil
 }
