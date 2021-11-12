@@ -89,7 +89,7 @@ func test_updateTrace(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
 
-		_, err := vc.Update(engine, k, v)
+		_, err := vc.update(engine, k, v)
 		is.NoErr(err)
 
 		val, ok := vc.tracer.(*mockTracer)
