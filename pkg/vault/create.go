@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-// Create takes a given key for an engine, and adds a new key/value pair in vault.
-func (vc *vaultClient) Create(engine, key, value string) (*api.Secret, error) {
-	vc.tracer.trace(fmt.Sprintf("%s/Create", vc.config.tracePrefix))
+// create takes a given key for an engine, and adds a new key/value pair in vault.
+func (vc *vaultClient) create(engine, key, value string) (*api.Secret, error) {
+	vc.tracer.trace(fmt.Sprintf("%s/create", vc.config.tracePrefix))
 
 	data, err := vc.SecretFromVault(engine)
 	if err != nil {

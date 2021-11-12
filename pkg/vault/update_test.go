@@ -32,7 +32,7 @@ func update_new(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 
 		engine, k, v := secretEngine, "update-new-key", "new-value"
-		_, err := vc.Update(engine, k, v)
+		_, err := vc.update(engine, k, v)
 
 		is.True(err != nil)
 	}
@@ -46,7 +46,7 @@ func update_existing(vc *vaultClient) func(*testing.T) {
 		version, err := vc.SecretVersionFromVault("kv/metadata/update/foo")
 		is.NoErr(err)
 
-		secret, err := vc.Update(engine, k, v)
+		secret, err := vc.update(engine, k, v)
 		is.NoErr(err)
 
 		currentVersion, err := secret.Data["version"].(json.Number).Int64()
@@ -61,7 +61,7 @@ func update_missingPath(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 
 		engine, k, v := "kv/data/update/missing", secretKey, secretValue
-		_, err := vc.Update(engine, k, v)
+		_, err := vc.update(engine, k, v)
 
 		is.True(err != nil)
 	}

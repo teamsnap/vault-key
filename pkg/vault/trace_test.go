@@ -58,12 +58,12 @@ func test_createTrace(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
 
-		_, err := vc.Create(engine, k, v)
+		_, err := vc.create(engine, k, v)
 		is.NoErr(err)
 
 		val, ok := vc.tracer.(*mockTracer)
 		is.Equal(ok, true)
-		is.Equal(val.spans, map[string]bool{"vault/Create": true, "vault/write": true, "vault/SecretFromVault": true})
+		is.Equal(val.spans, map[string]bool{"vault/SecretFromVault": true, "vault/create": true, "vault/write": true})
 	}
 }
 
@@ -74,12 +74,12 @@ func test_deleteTrace(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
 
-		_, err := vc.Delete(engine, k)
+		_, err := vc.delete(engine, k)
 		is.NoErr(err)
 
 		val, ok := vc.tracer.(*mockTracer)
 		is.Equal(ok, true)
-		is.Equal(val.spans, map[string]bool{"vault/Delete": true, "vault/SecretFromVault": true})
+		is.Equal(val.spans, map[string]bool{"vault/delete": true, "vault/SecretFromVault": true})
 	}
 }
 
@@ -89,7 +89,7 @@ func test_updateTrace(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
 
-		_, err := vc.Update(engine, k, v)
+		_, err := vc.update(engine, k, v)
 		is.NoErr(err)
 
 		val, ok := vc.tracer.(*mockTracer)
@@ -102,6 +102,8 @@ func test_newGCPVaultTokenTrace(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
+
+		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "test/default_credentials.json")
 
 		NewVaultToken(vc)
 		// _, err := NewVaultToken(vc)
