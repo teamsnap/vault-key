@@ -1,11 +1,17 @@
-package vault
+package vault_test
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/hashicorp/vault/api"
 	"github.com/matryer/is"
+	"github.com/teamsnap/vault-key/pkg/vault"
 )
 
 func TestGetSecrets(t *testing.T) {
@@ -16,7 +22,7 @@ func TestGetSecrets(t *testing.T) {
 
 	os.Setenv("VAULT_ADDR", loginServer.URL)
 
-	err := GetSecrets(context.Background(), res, []string{"my-key"})
+	err := vault.GetSecrets(context.Background(), res, []string{"my-key"})
 	is.NoErr(err)
 }
 
@@ -28,6 +34,43 @@ func TestGetSecretVersions(t *testing.T) {
 
 	os.Setenv("VAULT_ADDR", loginServer.URL)
 
-	err := GetSecretVersions(context.Background(), res, []string{"my-key"})
+	err := vault.GetSecretVersions(context.Background(), res, []string{"my-key"})
 	is.NoErr(err)
+}
+
+func TestCreateSecret(t *testing.T) {
+	is := is.New(t)
+	loginServer := vaultLoginServer()
+	defer loginServer.Close()
+
+	os.Setenv("VAULT_ADDR", loginServer.URL)
+
+	err := vault.CreateSecret(context.Background(), "staging/classic/dotenv", "key", "value")
+	is.NoErr(err)
+}
+
+func vaultLoginServer() *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/login") {
+			json.NewEncoder(w).Encode(api.Secret{
+				Auth: &api.SecretAuth{ClientToken: "vault-test-token"},
+			})
+			return
+		}
+
+		switch r.Method {
+		case http.MethodGet:
+			json.NewEncoder(w).Encode(
+				&api.Secret{
+					Data: map[string]interface{}{
+						"data":            map[string]interface{}{"my-key": "bar"},
+						"current_version": 1,
+					},
+				},
+			)
+		case http.MethodPost, http.MethodPut:
+			var incoming map[string]interface{}
+			json.NewDecoder(r.Body).Decode(&incoming)
+		}
+	}))
 }
