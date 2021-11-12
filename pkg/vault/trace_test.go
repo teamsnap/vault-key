@@ -103,6 +103,8 @@ func test_newGCPVaultTokenTrace(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
 
+		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "test/default_credentials.json")
+
 		NewVaultToken(vc)
 		// _, err := NewVaultToken(vc)
 		// is.NoErr(err)
