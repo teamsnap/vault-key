@@ -2,6 +2,8 @@
 
 Vault-Key makes it easy to use Vault with the [Google Cloud Auth Method](https://www.vaultproject.io/docs/auth/gcp.html). It uses a [GCP service account](https://cloud.google.com/iam/docs/service-accounts) and JSON web tokens to log in to Vault securely and without a password. Then it retrieves the secrets you need and makes them available in your code, hassle free.
 
+This project also makes it easy to interact with Vault using [Github Authentication](https://www.vaultproject.io/docs/auth/github).  Interaction is not only limited to retrieval, pkg/vault allows you to manage secrets as well.
+
 ## Usage
 
 ### Golang

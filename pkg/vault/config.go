@@ -2,11 +2,8 @@ package vault
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"strconv"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type config struct {
@@ -33,7 +30,6 @@ func loadVaultEnvironment() (*config, error) {
 	// Prefer github oauth token if available
 	if token := getEnv("GITHUB_OAUTH_TOKEN", ""); len(token) > 0 {
 		c.githubToken = token
-		log.Info(fmt.Sprintf("TRACE_PREFIX=%s, GITHUB_OAUTH_TOKEN=%s", c.tracePrefix, c.githubToken))
 
 		return c, nil
 	}
@@ -54,8 +50,6 @@ func loadVaultEnvironment() (*config, error) {
 	if c.vaultRole == "" {
 		return nil, errors.New("set the VAULT_ROLE environment variable")
 	}
-
-	log.Info(fmt.Sprintf("TRACE_PREFIX=%s, VAULT_ROLE=%s, GCLOUD_PROJECT=%s, FUNCTION_IDENTITY=%s, GCP_AUTH_PATH=%s", c.tracePrefix, c.vaultRole, c.project, c.serviceAccount, c.gcpAuthPath))
 
 	return c, nil
 }

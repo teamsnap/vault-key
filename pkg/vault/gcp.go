@@ -1,14 +1,11 @@
 package vault
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/vault/api"
-	log "github.com/sirupsen/logrus"
-	"go.opencensus.io/trace"
 	"google.golang.org/api/iam/v1"
 )
 
@@ -23,57 +20,41 @@ func NewGcpAuthClient() AuthClient {
 }
 
 func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
-	if vc.config.traceEnabled {
-		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/gcp/GetVaultToken", vc.config.tracePrefix))
-		defer span.End()
-	}
+	vc.tracer.trace(fmt.Sprintf("%s/gcp/GetVaultToken", vc.config.tracePrefix))
 
 	var err error
 	a.iamService, err = iam.NewService(vc.ctx)
 	if err != nil {
-		log.Debugf("initialze client: getting new iam service: %v", err)
-		return "", fmt.Errorf("getting new iam service: google: could not find default credentials")
+		return "", fmt.Errorf("getting new iam service: %w", err)
 	}
 
-	log.Debug("Successfully created IAM client")
-
-	err = a.generateSignedJWT(vc.ctx, vc.config)
+	err = a.generateSignedJWT(vc)
 	if err != nil {
-		log.Debugf("generating signed jwt: %v", err)
 		return "", fmt.Errorf("generating signed jwt, sigining jwt: Post")
 	}
-
-	log.Debug("Successfully generated signed JWT")
 
 	vaultResp, err := a.gcpSaAuth(vc)
 	if err != nil {
 		return "", err
 	}
 
-	log.Debug("Successfully logged into Vault with auth/gcp/login")
-
 	return vaultResp.Auth.ClientToken, nil
 }
 
 // generateSignedJWT returns a signed JWT response using IAM
-func (a *gcpAuthClient) generateSignedJWT(ctx context.Context, c *config) error {
-	if c.traceEnabled {
-		var span *trace.Span
-		ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/generateSignedJWT", c.tracePrefix))
-		defer span.End()
-	}
+func (a *gcpAuthClient) generateSignedJWT(vc *vaultClient) error {
+	vc.tracer.trace(fmt.Sprintf("%s/gcp/generateSignedJWT", vc.config.tracePrefix))
 
-	resourceName := fmt.Sprintf("projects/%s/serviceAccounts/%s", c.project, c.serviceAccount)
+	resourceName := fmt.Sprintf("projects/%s/serviceAccounts/%s", vc.config.project, vc.config.serviceAccount)
 	jwtPayload := map[string]interface{}{
-		"aud": "vault/" + c.vaultRole,
-		"sub": c.serviceAccount,
+		"aud": "vault/" + vc.config.vaultRole,
+		"sub": vc.config.serviceAccount,
 		"exp": time.Now().Add(time.Minute * 10).Unix(),
 	}
 
 	payloadBytes, err := json.Marshal(jwtPayload)
 	if err != nil {
-		return fmt.Errorf("marshaling payload: %v", err)
+		return fmt.Errorf("marshaling payload: %w", err)
 	}
 
 	signJwtReq := &iam.SignJwtRequest{
@@ -82,7 +63,7 @@ func (a *gcpAuthClient) generateSignedJWT(ctx context.Context, c *config) error 
 
 	a.resp, err = a.iamService.Projects.ServiceAccounts.SignJwt(resourceName, signJwtReq).Do()
 	if err != nil {
-		return fmt.Errorf("sigining jwt: %v", err)
+		return fmt.Errorf("sigining jwt: %w", err)
 	}
 
 	return nil
@@ -90,11 +71,7 @@ func (a *gcpAuthClient) generateSignedJWT(ctx context.Context, c *config) error 
 
 // gcpSaAuth takes signed JWT and sends login request to vault
 func (a *gcpAuthClient) gcpSaAuth(vc *vaultClient) (*api.Secret, error) {
-	if vc.config.traceEnabled {
-		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/gcp/vaultLogin", vc.config.tracePrefix))
-		defer span.End()
-	}
+	vc.tracer.trace(fmt.Sprintf("%s/gcp/vaultLogin", vc.config.tracePrefix))
 
 	vaultResp, err := vc.client.Logical().Write(
 		"auth/"+vc.config.gcpAuthPath+"/login",
@@ -104,7 +81,7 @@ func (a *gcpAuthClient) gcpSaAuth(vc *vaultClient) (*api.Secret, error) {
 		})
 
 	if err != nil {
-		return nil, fmt.Errorf("logging into vault:%v", err)
+		return nil, fmt.Errorf("logging into vault:%w", err)
 	}
 
 	return vaultResp, nil
