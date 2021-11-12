@@ -7,8 +7,8 @@ import (
 )
 
 // Delete takes a given key for an engine, and removes the key/value pair from vault.
-func (vc *vaultClient) Delete(engine, key string) (*api.Secret, error) {
-	vc.tracer.trace(fmt.Sprintf("%s/Delete", vc.config.tracePrefix))
+func (vc *vaultClient) delete(engine, key string) (*api.Secret, error) {
+	vc.tracer.trace(fmt.Sprintf("%s/delete", vc.config.tracePrefix))
 
 	res, err := vc.SecretFromVault(engine)
 	if err != nil {

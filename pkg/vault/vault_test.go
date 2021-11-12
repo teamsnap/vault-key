@@ -60,6 +60,17 @@ func TestUpdateSecret(t *testing.T) {
 	is.NoErr(err)
 }
 
+func TestDeleteSecret(t *testing.T) {
+	is := is.New(t)
+	loginServer := vaultLoginServer()
+	defer loginServer.Close()
+
+	os.Setenv("VAULT_ADDR", loginServer.URL)
+
+	err := vault.DeleteSecret(context.Background(), "data", "my-key")
+	is.NoErr(err)
+}
+
 func vaultLoginServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/login") {

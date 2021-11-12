@@ -31,7 +31,7 @@ func delete_new(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 
 		engine, k := secretEngine, "new-key"
-		_, err := vc.Delete(engine, k)
+		_, err := vc.delete(engine, k)
 		is.True(err != nil)
 	}
 }
@@ -41,7 +41,7 @@ func delete_existing(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 
 		engine, k := secretEngine, secretKey
-		_, err := vc.Delete(engine, k)
+		_, err := vc.delete(engine, k)
 		is.NoErr(err)
 
 		secret, err := vc.SecretFromVault(engine + "/" + k)
@@ -56,7 +56,7 @@ func delete_missingPath(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 
 		engine, k := "kv/data/delete/missing/foo", secretKey
-		_, err := vc.Delete(engine, k)
+		_, err := vc.delete(engine, k)
 		is.True(err != nil)
 	}
 }

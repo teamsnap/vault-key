@@ -74,12 +74,12 @@ func test_deleteTrace(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
 
-		_, err := vc.Delete(engine, k)
+		_, err := vc.delete(engine, k)
 		is.NoErr(err)
 
 		val, ok := vc.tracer.(*mockTracer)
 		is.Equal(ok, true)
-		is.Equal(val.spans, map[string]bool{"vault/Delete": true, "vault/SecretFromVault": true})
+		is.Equal(val.spans, map[string]bool{"vault/delete": true, "vault/SecretFromVault": true})
 	}
 }
 
