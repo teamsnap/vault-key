@@ -31,7 +31,7 @@ func create_new(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 
 		engine, k, v := secretEngine, "new-key", secretValue
-		_, err := vc.Create(engine, k, v)
+		_, err := vc.create(engine, k, v)
 
 		is.NoErr(err)
 	}
@@ -45,7 +45,7 @@ func create_existing(vc *vaultClient) func(*testing.T) {
 		version, err := vc.SecretVersionFromVault("kv/metadata/create/foo")
 		is.NoErr(err)
 
-		_, err = vc.Create(engine, k, v)
+		_, err = vc.create(engine, k, v)
 		is.True(err != nil)
 
 		currentVersion, err := vc.SecretVersionFromVault("kv/metadata/create/foo")
@@ -60,7 +60,7 @@ func create_missingPath(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 
 		engine, k, v := "kv/data/create/missing/foo", secretKey, secretValue
-		_, err := vc.Create(engine, k, v)
+		_, err := vc.create(engine, k, v)
 
 		is.True(err != nil)
 	}

@@ -53,6 +53,37 @@ func GetSecrets(ctx context.Context, secretValues *map[string]map[string]string,
 	return nil
 }
 
+// CreateSecret takes a given key for an engine, and adds a new key/value pair in vault.
+func CreateSecret(ctx context.Context, engine, key, value string) error {
+	environment := os.Getenv("ENVIRONMENT")
+
+	if environment == "production" {
+		log.SetFormatter(&log.JSONFormatter{})
+		log.SetLevel(log.WarnLevel)
+	} else {
+		log.SetFormatter(&log.TextFormatter{})
+		log.SetLevel(log.TraceLevel)
+	}
+
+	config, err := loadVaultEnvironment()
+	if err != nil {
+		return fmt.Errorf("load client environment: %w", err)
+	}
+
+	vc, err := NewVaultClient(ctx, config)
+	if err != nil {
+		return fmt.Errorf("error initializing vault client: %w", err)
+	}
+
+	vc.tracer.trace(fmt.Sprintf("%s/CreateSecret", vc.config.tracePrefix))
+
+	if _, err := vc.create(engine, key, value); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GetSecretVersions fills a map with the versions of secrets pulled from Vault.
 func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, secretNames []string) error {
 	environment := os.Getenv("ENVIRONMENT")

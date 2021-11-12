@@ -58,12 +58,12 @@ func test_createTrace(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
 
-		_, err := vc.Create(engine, k, v)
+		_, err := vc.create(engine, k, v)
 		is.NoErr(err)
 
 		val, ok := vc.tracer.(*mockTracer)
 		is.Equal(ok, true)
-		is.Equal(val.spans, map[string]bool{"vault/Create": true, "vault/write": true, "vault/SecretFromVault": true})
+		is.Equal(val.spans, map[string]bool{"vault/SecretFromVault": true, "vault/create": true, "vault/write": true})
 	}
 }
 
