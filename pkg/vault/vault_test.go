@@ -83,6 +83,7 @@ func TestListEngines(t *testing.T) {
 }
 
 func vaultLoginServer() *httptest.Server {
+	os.Setenv("GITHUB_OAUTH_TOKEN", "token")
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/login") {
 			json.NewEncoder(w).Encode(api.Secret{
