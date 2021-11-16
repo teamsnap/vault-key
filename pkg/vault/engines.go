@@ -4,9 +4,9 @@ import (
 	"fmt"
 )
 
-// EnginesFromVault takes a path and returns a list of engines from vault.
-func (vc *vaultClient) EnginesFromVault(path string) ([]string, error) {
-	vc.tracer.trace(fmt.Sprintf("%s/EnginesFromVault", vc.config.tracePrefix))
+// enginesFromVault takes a path and returns a list of engines from vault.
+func (vc *vaultClient) enginesFromVault(path string) ([]string, error) {
+	vc.tracer.trace(fmt.Sprintf("%s/enginesFromVault", vc.config.tracePrefix))
 
 	engines, err := vc.client.Logical().List(path)
 	if err != nil {
