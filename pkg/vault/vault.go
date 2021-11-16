@@ -19,19 +19,9 @@ func NewVaultToken(vc *vaultClient) (string, error) {
 
 // ListEngines fills a map with the secrets engines pulled from Vault.
 func ListEngines(ctx context.Context, path string) ([]string, error) {
-	environment := os.Getenv("ENVIRONMENT")
-
-	if environment == "production" {
-		log.SetFormatter(&log.JSONFormatter{})
-		log.SetLevel(log.WarnLevel)
-	} else {
-		log.SetFormatter(&log.TextFormatter{})
-		log.SetLevel(log.TraceLevel)
-	}
-
-	config, err := loadVaultEnvironment()
+	config, err := getConfig()
 	if err != nil {
-		return nil, fmt.Errorf("load client environment: %v", err)
+		return nil, err
 	}
 
 	vc, err := NewVaultClient(ctx, config)
@@ -42,13 +32,12 @@ func ListEngines(ctx context.Context, path string) ([]string, error) {
 
 	vc.tracer.trace(fmt.Sprintf("%s/ListEngines", vc.config.tracePrefix))
 
-	engine, err := vc.EnginesFromVault(path)
+	engine, err := vc.enginesFromVault(path)
 	if err != nil {
 		return nil, fmt.Errorf("getting engines: %v", err)
 	}
 
 	return engine, nil
-
 }
 
 // GetSecrets fills a map with the values of secrets pulled from Vault.
