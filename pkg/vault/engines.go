@@ -2,17 +2,11 @@ package vault
 
 import (
 	"fmt"
-
-	"go.opencensus.io/trace"
 )
 
 // EnginesFromVault takes a path and returns a list of engines from vault.
 func (vc *vaultClient) EnginesFromVault(path string) ([]string, error) {
-	if vc.config.traceEnabled {
-		var span *trace.Span
-		vc.ctx, span = trace.StartSpan(vc.ctx, fmt.Sprintf("%s/EnginesFromVault", vc.config.tracePrefix))
-		defer span.End()
-	}
+	vc.tracer.trace(fmt.Sprintf("%s/EnginesFromVault", vc.config.tracePrefix))
 
 	engines, err := vc.client.Logical().List(path)
 	if err != nil {

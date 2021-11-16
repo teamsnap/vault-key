@@ -40,11 +40,7 @@ func ListEngines(ctx context.Context, path string) ([]string, error) {
 		return nil, fmt.Errorf("error initializing vault client: %v", err)
 	}
 
-	if config.traceEnabled {
-		var span *trace.Span
-		ctx, span = trace.StartSpan(ctx, fmt.Sprintf("%s/ListEngines", config.tracePrefix))
-		defer span.End()
-	}
+	vc.tracer.trace(fmt.Sprintf("%s/ListEngines", vc.config.tracePrefix))
 
 	engine, err := vc.EnginesFromVault(path)
 	if err != nil {

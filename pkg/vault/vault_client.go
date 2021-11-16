@@ -122,6 +122,7 @@ func (vc *vaultClient) trace(name string) func() {
 	)
 
 	return func() { defer span.End() }
+}
 
 func extractListData(secret *api.Secret) ([]interface{}, bool) {
 	if secret == nil || secret.Data == nil {

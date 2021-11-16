@@ -29,6 +29,7 @@ func TestEngines(t *testing.T) {
 		ctx:    context.Background(),
 		client: rootVaultClient,
 	}
+	vc.tracer = vc
 
 	t.Run("engine listings", testEngineListing(vc))
 }
