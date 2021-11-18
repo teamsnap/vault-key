@@ -2,9 +2,8 @@ package vault
 
 import (
 	"context"
-	"fmt"
-
 	"encoding/json"
+	"fmt"
 
 	"github.com/hashicorp/vault/api"
 	"go.opencensus.io/trace"
@@ -123,4 +122,18 @@ func (vc *vaultClient) trace(name string) func() {
 	)
 
 	return func() { defer span.End() }
+}
+
+func extractListData(secret *api.Secret) ([]interface{}, bool) {
+	if secret == nil || secret.Data == nil {
+		return nil, false
+	}
+
+	k, ok := secret.Data["keys"]
+	if !ok || k == nil {
+		return nil, false
+	}
+
+	i, ok := k.([]interface{})
+	return i, ok
 }

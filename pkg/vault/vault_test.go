@@ -71,7 +71,19 @@ func TestDeleteSecret(t *testing.T) {
 	is.NoErr(err)
 }
 
+func TestListEngines(t *testing.T) {
+	is := is.New(t)
+	loginServer := vaultLoginServer()
+	defer loginServer.Close()
+
+	os.Setenv("VAULT_ADDR", loginServer.URL)
+
+	_, err := vault.ListEngines(context.Background(), "data")
+	is.NoErr(err)
+}
+
 func vaultLoginServer() *httptest.Server {
+	os.Setenv("GITHUB_OAUTH_TOKEN", "token")
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/login") {
 			json.NewEncoder(w).Encode(api.Secret{
