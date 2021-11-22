@@ -8,7 +8,7 @@ import (
 )
 
 func TestDelete(t *testing.T) {
-	secretKey, secretValue, secretEngine = "deletable-key", "foo", "kv/data/delete/foo"
+	secretKey, secretValue, secretEngine = "deletable-key", "value", "kv/data/delete/foo"
 
 	cluster := createTestVault(t)
 	defer cluster.Cleanup()
@@ -39,15 +39,15 @@ func delete_new(vc *vaultClient) func(*testing.T) {
 func delete_existing(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
 		is := is.New(t)
-
 		engine, k := secretEngine, secretKey
+
 		_, err := vc.delete(engine, k)
 		is.NoErr(err)
 
-		secret, err := vc.SecretFromVault(engine + "/" + k)
-		is.True(err != nil)
-		_, ok := secret[k]
-		is.Equal(false, ok)
+		secret, err := vc.SecretFromVault(engine)
+		is.NoErr(err)
+		_, present := secret[k]
+		is.Equal(false, present)
 	}
 }
 
