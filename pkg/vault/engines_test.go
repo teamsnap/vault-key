@@ -8,7 +8,7 @@ import (
 )
 
 func TestEngines(t *testing.T) {
-	secretKey, secretValue, secretEngine = "myKey", "myValue", "kv/data/delete/foo"
+	secretKey, secretValue, secretEngine = "myKey", "myValue", "kv/data/list/foo"
 
 	secrets := map[string]interface{}{
 		"data": map[string]interface{}{secretKey: secretValue},
@@ -17,7 +17,7 @@ func TestEngines(t *testing.T) {
 	cluster := createTestVault(t)
 	defer cluster.Cleanup()
 
-	_, err := cluster.Cores[0].Client.Logical().Write("kv/data/delete/bar", secrets)
+	_, err := cluster.Cores[0].Client.Logical().Write("kv/data/list/bar", secrets)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func testEngineListing(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
 		is := is.New(t)
 		expected := []string{"bar", "foo"}
-		path := "kv/metadata/delete"
+		path := "kv/metadata/list"
 		engines, err := vc.enginesFromVault(path)
 		if err != nil {
 			t.Errorf("list engines from vault, %v", err)

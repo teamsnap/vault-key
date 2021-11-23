@@ -31,8 +31,8 @@ func TestTracer(t *testing.T) {
 	}
 
 	t.Run("trace create", test_createTrace(vc))
-	t.Run("trace delete", test_deleteTrace(vc))
 	t.Run("trace update", test_updateTrace(vc))
+	t.Run("trace delete", test_deleteTrace(vc))
 	t.Run("trace new github vault token", test_newGithubVaultTokenTrace(vc))
 }
 
@@ -79,7 +79,7 @@ func test_deleteTrace(vc *vaultClient) func(*testing.T) {
 
 		val, ok := vc.tracer.(*mockTracer)
 		is.Equal(ok, true)
-		is.Equal(val.spans, map[string]bool{"vault/delete": true, "vault/SecretFromVault": true})
+		is.Equal(val.spans, map[string]bool{"vault/delete": true, "vault/SecretFromVault": true, "vault/write": true})
 	}
 }
 

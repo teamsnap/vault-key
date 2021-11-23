@@ -16,7 +16,7 @@ func (vc *vaultClient) update(engine, key, value string) (*api.Secret, error) {
 	}
 
 	if _, ok := data[key]; !ok {
-		return nil, fmt.Errorf("missing key: %s for secret at %s", key, engine)
+		return nil, fmt.Errorf("key: %s does not exist for engine at %s", key, engine)
 	} else {
 		data[key] = value
 	}
