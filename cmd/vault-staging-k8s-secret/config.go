@@ -10,12 +10,9 @@ type config struct {
 	defaultEngine string
 	override      string
 	k8sNamespace  string
-	lgr           *zap.Logger
 }
 
-func newConfig() *config {
-	lgr := newLogger()
-
+func newConfig(lgr *zap.Logger) *config {
 	defaultEngine := os.Getenv("VAULT_SECRET")
 	lgr.Debug("vault-path to the default engine", zap.String("VAULT_SECRET", defaultEngine))
 	if len(defaultEngine) < 1 {
@@ -38,6 +35,5 @@ func newConfig() *config {
 		defaultEngine: defaultEngine,
 		override:      override,
 		k8sNamespace:  k8sNamespace,
-		lgr:           lgr,
 	}
 }

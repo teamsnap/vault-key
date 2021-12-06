@@ -3,8 +3,6 @@ module github.com/teamsnap/vault-staging-k8s-secret
 go 1.17
 
 require (
-	github.com/hashicorp/vault/api v1.1.2-0.20210713235431-1fc8af4c041f
-	github.com/matryer/is v1.4.0
 	github.com/teamsnap/vault-key/pkg/k8s v0.1.2
 	github.com/teamsnap/vault-key/pkg/vault v0.4.2
 	go.uber.org/zap v1.19.1
@@ -34,6 +32,7 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
+	github.com/hashicorp/vault/api v1.1.2-0.20210713235431-1fc8af4c041f // indirect
 	github.com/hashicorp/vault/sdk v0.2.2-0.20210713235431-1fc8af4c041f // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
@@ -50,6 +49,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/automaxprocs v1.4.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
