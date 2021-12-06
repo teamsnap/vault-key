@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"strings"
 
@@ -32,31 +33,34 @@ func getZapLevelFromString(lvlString string) (zapcore.Level, bool) {
 
 // newLogger returns a logger based defaulted to INFO
 // Configurable via an environment varaible VERBOSITY
-func newLogger() *zap.Logger {
+func newLogger(service string) (*zap.Logger, error) {
 	verbosity := getEnv("VERBOSITY", "info")
 
 	lvl, ok := getZapLevelFromString(verbosity)
 	if !ok {
-		panic("invalid verbosity level provided")
+		return nil, errors.New("invalid verbosity level provided")
 	}
 
-	cfg := zap.Config{
-		Level:            zap.NewAtomicLevelAt(lvl),
-		Encoding:         "console",
-		EncoderConfig:    zap.NewDevelopmentEncoderConfig(),
-		OutputPaths:      []string{"stderr"},
-		ErrorOutputPaths: []string{"stderr"},
+	cfg := zap.NewProductionConfig()
+	cfg.Level = zap.NewAtomicLevelAt(lvl)
+	cfg.OutputPaths = []string{"stdout"}
+	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	cfg.DisableStacktrace = true
+	cfg.InitialFields = map[string]interface{}{
+		"service": service,
 	}
 
 	logger, err := cfg.Build()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	cfg.Level.SetLevel(lvl)
 
-	return logger
+	return logger, nil
 }
 
+// getEnv gets the value of an enviroinment variable named by the key.
+// If the key is not found, a fallback value is used.
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
