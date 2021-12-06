@@ -78,10 +78,12 @@ func run(ctx context.Context, lgr *zap.Logger) error {
 	}
 
 	lgr.Info("applying merged secrets to namespace", zap.String("namespace", cfg.k8sNamespace))
-	k8s.ApplySecret(&k8s.Secret{
+	if err := k8s.ApplySecret(&k8s.Secret{
 		Secrets:   mergedSecrets,
 		Namespace: cfg.k8sNamespace,
-	})
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
