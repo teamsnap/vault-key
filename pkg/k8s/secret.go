@@ -3,7 +3,7 @@ package k8s
 import (
 	"context"
 	"flag"
-	"log"
+	"fmt"
 	"path/filepath"
 
 	apiv1 "k8s.io/api/core/v1"
@@ -23,7 +23,7 @@ type Secret struct {
 }
 
 // ApplySecret takes a Vault secret and k8s namespace and creates the k8s secret based on the data
-func ApplySecret(vaultSecret *Secret) {
+func ApplySecret(vaultSecret *Secret) error {
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
@@ -34,12 +34,12 @@ func ApplySecret(vaultSecret *Secret) {
 	flag.Parse()
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("build clientcmd: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("new clientSet: %w", err)
 	}
 
 	secretData := map[string][]byte{}
@@ -61,6 +61,8 @@ func ApplySecret(vaultSecret *Secret) {
 	ctx := context.Background()
 	client.ApplySecret(ctx, secret)
 	if err != nil {
-		log.Printf("apply secret failed: %s", err)
+		return fmt.Errorf("apply secret failed: %s", err)
 	}
+
+	return nil
 }
