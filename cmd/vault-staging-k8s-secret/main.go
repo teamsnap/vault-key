@@ -41,12 +41,15 @@ func run(ctx context.Context, lgr *zap.Logger) error {
 	lgr.Info("startup", zap.Int("GOMAXPROCS", runtime.GOMAXPROCS(0)))
 
 	cfg := newConfig(lgr)
-	engines := []string{cfg.defaultEngine, cfg.override}
-	verifiedEngines := []string{}
 
+	engines := []string{cfg.defaultEngine}
+	if cfg.override != "" {
+		engines = append(engines, cfg.override)
+	}
+
+	var verifiedEngines []string
 	for _, p := range engines {
 		lgr.Debug("verifying engine exists for path", zap.String("path", p))
-
 		if _, err := vault.ListEngines(ctx, p); err != nil {
 			verifiedEngines = append(verifiedEngines, p)
 		} else {
@@ -60,7 +63,7 @@ func run(ctx context.Context, lgr *zap.Logger) error {
 		return fmt.Errorf("cannot get secrets from vault: %w", err)
 	}
 
-	var mergedSecrets map[string]string
+	mergedSecrets := map[string]string{}
 	for _, e := range verifiedEngines {
 		if e == cfg.override {
 			lgr.Info("creating overrides")
