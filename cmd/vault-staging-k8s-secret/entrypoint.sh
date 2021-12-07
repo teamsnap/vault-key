@@ -2,6 +2,10 @@
 
 set -e
 
+if [ "${VERBOSITY}" = "DEBUG" ]; then
+  set -x
+fi
+
 config_auth () {
   if [ -z "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
     echo "PLUGIN_GOOGLE_APPLICATION_CREDENTIALS environment variable is not set." > /dev/null 2>&1
