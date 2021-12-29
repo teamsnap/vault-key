@@ -1178,8 +1178,8 @@ github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5Cc
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/svanharmelen/jsonapi v0.0.0-20180618144545-0c0828c3f16d/go.mod h1:BSTlc8jOjh0niykqEGVXOLXdi9o0r0kR8tCYiMvjFgw=
-github.com/teamsnap/vault-key/pkg/k8s v0.2.2 h1:59CPK0wDle3Utmehgx73o+oY3iMb2+Pu0ZvkPQJw6HM=
-github.com/teamsnap/vault-key/pkg/k8s v0.2.2/go.mod h1:KKV+sdQRXHzr7zP2cf0oXQJJDMnsH4rT2j11KcuxJ8I=
+github.com/teamsnap/vault-key/pkg/k8s v0.2.3 h1:WQrH3/fMXu5xSGwAf8M1gIHQyAOl+9d1qtg9oXNkZgw=
+github.com/teamsnap/vault-key/pkg/k8s v0.2.3/go.mod h1:KKV+sdQRXHzr7zP2cf0oXQJJDMnsH4rT2j11KcuxJ8I=
 github.com/teamsnap/vault-key/pkg/vault v0.4.2 h1:03vB/8NdWT1FLWOk7CyTtxPHU3gOiL0ODa++6cw7O1Q=
 github.com/teamsnap/vault-key/pkg/vault v0.4.2/go.mod h1:Xdh78GKvtC2CXClWwf0fjhuT6pDNRL5lgg8JqmCgwHY=
 github.com/tencentcloud/tencentcloud-sdk-go v3.0.83+incompatible/go.mod h1:0PfYow01SHPMhKY31xa+EFz2RStxIqj6JFAJS+IkCi4=

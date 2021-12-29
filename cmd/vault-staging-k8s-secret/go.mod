@@ -3,7 +3,7 @@ module github.com/teamsnap/vault-staging-k8s-secret
 go 1.17
 
 require (
-	github.com/teamsnap/vault-key/pkg/k8s v0.2.2
+	github.com/teamsnap/vault-key/pkg/k8s v0.2.3
 	github.com/teamsnap/vault-key/pkg/vault v0.4.2
 	go.uber.org/automaxprocs v1.4.0
 	go.uber.org/zap v1.19.1
