@@ -49,7 +49,8 @@ func ApplySecret(vaultSecret *Secret) error {
 
 	secret := &apiv1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "vault-secret",
+			Name:      "vault-secret",
+			Namespace: vaultSecret.Namespace,
 		},
 		Data: secretData,
 	}
