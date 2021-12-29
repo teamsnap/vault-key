@@ -15,24 +15,29 @@ type Client struct {
 }
 
 func (c Client) ApplySecret(ctx context.Context, secret *apiv1.Secret) error {
-	_, err := c.createSecret(ctx, secret)
-	if err != nil {
+	if _, err := c.createSecret(ctx, secret); err != nil {
 		err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-			// Retrieve the latest version of Secret before attempting update
+			// Fetch the resource here; you need to refetch it on every try, since
+			// if you got a conflict on the last update attempt then you need to get
+			// the current version before making your own changes.
+
 			// RetryOnConflict uses exponential backoff to avoid exhausting the apiserver
 			gs, err := c.getSecret(ctx, secret)
 			if err != nil {
-				return err
+				return fmt.Errorf("retrieving the latest version %w", err)
 			}
 
 			if err := c.updateSecret(ctx, gs); err != nil {
-				return err
+				return fmt.Errorf("update secret %w", err)
 			}
 
 			return nil
 		})
 
 		if err != nil {
+			// May be conflict if max retries were hit, or may be something unrelated
+			// like permissions or a network error
+
 			return err
 		}
 	}
