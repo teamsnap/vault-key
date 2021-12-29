@@ -39,7 +39,7 @@ func (c Client) ApplySecret(ctx context.Context, secret *apiv1.Secret) error {
 			// May be conflict if max retries were hit, or may be something unrelated
 			// like permissions or a network error
 
-			return fmt.Errorf("", err)
+			return err
 		}
 	}
 
