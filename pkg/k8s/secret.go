@@ -59,7 +59,7 @@ func ApplySecret(vaultSecret *Secret) error {
 	}
 
 	ctx := context.Background()
-	client.ApplySecret(ctx, secret)
+	err = client.ApplySecret(ctx, secret)
 	if err != nil {
 		return fmt.Errorf("apply secret failed: %s", err)
 	}
