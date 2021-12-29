@@ -76,16 +76,21 @@ func run(ctx context.Context, lgr *zap.Logger) error {
 		if _, ok := mergedSecrets[k]; !ok {
 			mergedSecrets[k] = v
 		} else {
-			lgr.Debug("overriding default value for key", zap.String("key", k))
+			lgr.Debug(
+				"default value for key overriden by configuration",
+				zap.String("key", k),
+				zap.String("value", v),
+				zap.String("path", cfg.override),
+			)
 		}
 	}
 
-	lgr.Info("applying merged secrets to namespace", zap.String("namespace", cfg.k8sNamespace))
+	lgr.Info("applying merged secrets to namespace", zap.String("namespace", cfg.k8sNamespace), zap.Int("number of secrets", len(mergedSecrets)))
 	if err := k8s.ApplySecret(&k8s.Secret{
 		Secrets:   mergedSecrets,
 		Namespace: cfg.k8sNamespace,
 	}); err != nil {
-		return err
+		return fmt.Errorf("unable to apply secrets to namespace %s: %w", cfg.k8sNamespace, err)
 	}
 
 	return nil

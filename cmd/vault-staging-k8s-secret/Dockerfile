@@ -1,4 +1,4 @@
-FROM golang:1.17.3-bullseye as builder
+FROM golang:1.17.5-bullseye as builder
 
 WORKDIR /go/src/github.com/teamsnap/vault-staging-k8s-secret
 COPY go.* .
