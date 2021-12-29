@@ -25,6 +25,7 @@ func (c Client) ApplySecret(ctx context.Context, secret *apiv1.Secret) error {
 				return err
 			}
 
+			gs.Data = secret.Data
 			if err := c.updateSecret(ctx, gs); err != nil {
 				return err
 			}
