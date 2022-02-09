@@ -36,9 +36,9 @@ func newConfig(lgr *zap.Logger) *config {
 	// load optional config from environment
 	override := os.Getenv("VAULT_SECRET_OVERRIDE")
 	if len(override) < 1 {
-		lgr.Info("No override engine provided.")
+		lgr.Info("No override secret provided.")
 	} else {
-		lgr.Debug("vault-path to an overriding engine", zap.String("VAULT_SECRET_OVERRIDE", override))
+		lgr.Debug("vault-path to an overriding secret", zap.String("VAULT_SECRET_OVERRIDE", override))
 	}
 
 	return &config{
