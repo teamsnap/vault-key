@@ -97,29 +97,21 @@ func (vc *vaultClient) SecretVersionFromVault(secretName string) (int64, error) 
 		return 0, fmt.Errorf("reading secret from Vault for %s", secretName)
 	}
 
-	if cv, ok := secretValues.Data["current_version"]; ok {
-		switch v := cv.(type) {
-		case int64:
-			return v, nil
-		case int:
-			return int64(v), nil
-		case json.Number:
-			if num, err := v.Int64(); err == nil {
-				return num, nil
-			}
-			if num, err := strconv.Atoi(v.String()); err != nil {
-				return 0, fmt.Errorf("%v is not a number for secret %s", v, secretName)
-
-			} else {
-				return int64(num), nil
-			}
-
-		default:
-			return 0, fmt.Errorf("%v is an unexpected type %t or secret %s current_version", v, v, secretName)
-		}
-	} else {
+	if _, ok := secretValues.Data["current_version"]; !ok {
 		return 0, fmt.Errorf("current version not found for secret %s", secretName)
 	}
+
+	if val, ok := secretValues.Data["current_version"].(json.Number); ok {
+		if res, err := val.Int64(); err == nil {
+			return res, nil
+		}
+
+		if num, err := strconv.Atoi(val.String()); err == nil {
+			return int64(num), nil
+		}
+	}
+
+	return 0, fmt.Errorf("current version %s for secret %s is NaN?", secretValues.Data["current_version"], secretName)
 }
 
 type tracer interface {
