@@ -94,7 +94,7 @@ func (vc *vaultClient) SecretVersionFromVault(secretName string) (int64, error) 
 
 	secretValues, err := vc.client.Logical().Read(secretName)
 	if err != nil {
-		return 0, fmt.Errorf("reading secret from Vault for %s", secretName)
+		return 0, fmt.Errorf("reading secret from Vault for %s failed:%w ", secretName, err)
 	}
 
 	if _, ok := secretValues.Data["current_version"]; !ok {
