@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/vault/api"
 	"go.opencensus.io/trace"
@@ -91,19 +92,29 @@ func (vc *vaultClient) SecretFromVault(secretName string) (map[string]string, er
 func (vc *vaultClient) SecretVersionFromVault(secretName string) (int64, error) {
 	vc.tracer.trace(fmt.Sprintf("%s/SecretVersionFromVault", vc.config.tracePrefix))
 
-	version := int64(0)
-
+	var version int64
 	secretValues, err := vc.client.Logical().Read(secretName)
 	if err != nil {
-		return version, fmt.Errorf("reading secret from Vault for %s", secretName)
+		return version, fmt.Errorf("reading secret from Vault for %s failed: %w", secretName, err)
 	}
 
-	version, err = secretValues.Data["current_version"].(json.Number).Int64()
-	if err != nil {
-		return version, fmt.Errorf("converting secret version to integer for %s: %v", secretName, err)
+	if _, ok := secretValues.Data["current_version"]; !ok {
+		return version, fmt.Errorf("current version not available for secret %s", secretName)
 	}
 
-	return version, nil
+	// current_version exists and it is a json.Number
+	if val, ok := secretValues.Data["current_version"].(json.Number); ok {
+		if num, err := val.Int64(); err == nil {
+			return num, nil
+		}
+
+		if num, err := strconv.Atoi(val.String()); err == nil {
+			return int64(num), nil
+		}
+	}
+
+	// current version not found or is not a json.Number
+	return version, fmt.Errorf("current version is of type: %t and value: %v for secret %s", secretValues.Data["current_version"], secretValues.Data["current_version"], secretName)
 }
 
 type tracer interface {
