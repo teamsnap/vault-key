@@ -41,7 +41,7 @@ func testValidClient(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
 		secrets, err := vc.SecretFromVault(secretEngine)
 		if err != nil {
-			t.Errorf("get secret from vault, %w", err)
+			t.Errorf("get secret from vault, %s", err)
 		}
 
 		for k, v := range secrets {
@@ -62,7 +62,7 @@ func testVersionedSecrets(vc *vaultClient) func(*testing.T) {
 
 		version, err := vc.SecretVersionFromVault(path)
 		if err != nil {
-			t.Errorf("get versioned secret from vault, %w", err)
+			t.Errorf("get versioned secret from vault, %s", err)
 		}
 
 		is.Equal(version, int64(1))
