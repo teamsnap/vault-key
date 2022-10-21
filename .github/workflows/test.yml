@@ -9,16 +9,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Go
+      - name: Set up Go 1.19
         uses: actions/setup-go@v3
         with:
           go-version: 1.19
-      - name: Test vault-key/pkg/vault
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v3
+
+      - name: go get
         run: |
-          cd ./pkg/vault && go test -race -v -cover ./...
-      - name: Test vault-key/pkg/k8s
+          dirs=$(go list -f '{{.Dir}}' -m )
+           for dir in ${dirs[@]}; do
+             cd "$dir"
+             go mod tidy
+           done
+
+      - name: test
         run: |
-          cd ./pkg/k8s && go test -race -v -cover ./...
+         echo secrets.GH_ACTIONS_GCP_SA_STAGING > staging-creds.json
+         dirs=$(go list -f '{{.Dir}}' -m )
+           for dir in ${dirs[@]}; do
+           go test -race -v -coverprofile=$dir/c.out $dir/...
+         done
