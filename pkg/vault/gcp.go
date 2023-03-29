@@ -30,7 +30,7 @@ func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 
 	err = a.generateSignedJWT(vc)
 	if err != nil {
-		return "", fmt.Errorf("generating signed jwt, sigining jwt: Post")
+		return "", fmt.Errorf("generate signed jwt:  %w", err)
 	}
 
 	vaultResp, err := a.gcpSaAuth(vc)
