@@ -1,0 +1,46 @@
+name: Tag pkg/vault On Release
+on:
+  workflow_run:
+    workflows:
+    - "release"
+    types:
+    - completed
+  push:
+    branches:
+    - main
+    paths:
+    - pkg/vault/**
+
+jobs:
+  tag:
+    name: release pkg/vault
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: check for changes
+      id: changed
+      run: |
+       set +e
+       git diff origin/main...origin/${{ github.ref_name }} --name-only |grep -q pkg/vault/ >/dev/null
+       if [ $? -eq 0 ] ; then
+         echo "::set-output name=taggit::true"
+       else
+         echo "::notice ::no changes detected in pkg/vault/**"
+       fi
+
+    - name: tag package
+      if: ${{ steps.changed.outputs.taggit }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO: ${{ github.event.repository.name }}
+      run: |
+       VERSION=$(gh release list --limit 1 | awk '{print $1}')
+       if [ -z "$VERSION" ]; then
+         echo "Missing VERSION environment variable"
+         exit 1
+       fi
+       echo $VERSION
+       gh release create pkg/vault/$VERSION
