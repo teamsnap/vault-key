@@ -1,32 +1,48 @@
 version: 2
 updates:
-- package-ecosystem: docker
-  directory: "/infra/docker"
-  schedule:
-    interval: daily
-  pull-request-branch-name:
-    separator: "-"
-  open-pull-requests-limit: 15
-  rebase-strategy: disabled
-- package-ecosystem: bundler
-  directory: "/"
-  schedule:
-    interval: daily
-  pull-request-branch-name:
-    separator: "-"
-  open-pull-requests-limit: 15
-  rebase-strategy: disabled
-- package-ecosystem: "github-actions"
-  directory: "/"
-  schedule:
-    interval: "daily"
-  pull-request-branch-name:
-    separator: "-"
-- package-ecosystem: npm
-  directory: "/"
-  schedule:
-    interval: daily
-  pull-request-branch-name:
-    separator: "-"
-  open-pull-requests-limit: 15
-  rebase-strategy: disabled
+  - package-ecosystem: docker
+    directory: "/infra/docker"
+    schedule:
+      interval: daily
+    pull-request-branch-name:
+      separator: "-"
+    open-pull-requests-limit: 15
+    rebase-strategy: disabled
+    groups:
+      patch-updates:
+        update-types:
+          - "patch"
+  - package-ecosystem: bundler
+    directory: "/"
+    schedule:
+      interval: daily
+    pull-request-branch-name:
+      separator: "-"
+    open-pull-requests-limit: 15
+    rebase-strategy: disabled
+    groups:
+      patch-updates:
+        update-types:
+          - "patch"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    pull-request-branch-name:
+      separator: "-"
+    groups:
+      patch-updates:
+        update-types:
+          - "patch"
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: daily
+    pull-request-branch-name:
+      separator: "-"
+    open-pull-requests-limit: 15
+    rebase-strategy: disabled
+    groups:
+      patch-updates:
+        update-types:
+          - "patch"
