@@ -1,0 +1,36 @@
+name: Disk Image
+
+on:
+  push:
+    branches:
+    # - main
+    - PLAT-4450/preload-container-images
+  pull_request:
+    branches:
+    # - main
+    - PLAT-4450/preload-container-images
+
+jobs:
+  google-cloud-build-staging:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.actor, 'dependabot') }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GH_ACTIONS_GCP_KEY_STAGING }}
+          
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build Disk Image
+        if: github.ref != 'refs/heads/main'
+        run: |
+          gcloud builds submit \
+           --config=infra/cloudbuild/cloudbuild.yaml \
+           --substitutions=COMMIT_SHA="${{ github.sha }}",_GCB_GITHUB_OAUTH_TOKEN="${{ secrets.REPO_SCOPED_TOKEN }}" \
+           --quiet

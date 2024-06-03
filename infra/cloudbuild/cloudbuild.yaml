@@ -1,0 +1,16 @@
+steps:
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', 'https://github.com/GoogleCloudPlatform/ai-on-gke.git']
+- name: 'gcr.io/cloud-builders/go:1.21'
+  env: ['GOPATH=./ai-on-gke/tools/gke-disk-image-builder']
+  dir: './ai-on-gke/tools/gke-disk-image-builder'
+  args:
+    - 'run'
+    - './cli'
+    - --project-name=$PROJECT_ID
+    - --image-name=vault-key-preloaded-$COMMIT_SHA
+    - --zone=us-east1-b
+    - --gcs-path=gs://testing-preloaded-images
+    - --image-pull-auth=ServiceAccountToken
+    - --disk-size-gb=10
+    - --container-image=us.gcr.io/$PROJECT_ID/vault-key/staging-k8-secret:0.2.0
