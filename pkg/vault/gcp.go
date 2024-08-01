@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	credentials "cloud.google.com/go/iam/credentials/apiv1"
+	"cloud.google.com/go/iam/credentials/apiv1/credentialspb"
 	"github.com/hashicorp/vault/api"
-	"google.golang.org/api/iam/v1"
 )
 
 type gcpAuthClient struct {
-	iamService *iam.Service
-	resp       *iam.SignJwtResponse
+	credentialsClient *credentials.IamCredentialsClient
+	resp              *credentialspb.SignJwtResponse
 }
 
 // NewAuthClient returns a new instance of an auth client
@@ -23,9 +24,9 @@ func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 	vc.tracer.trace(fmt.Sprintf("%s/gcp/GetVaultToken", vc.config.tracePrefix))
 
 	var err error
-	a.iamService, err = iam.NewService(vc.ctx)
+	a.credentialsClient, err = credentials.NewIamCredentialsClient(vc.ctx)
 	if err != nil {
-		return "", fmt.Errorf("getting new iam service: %w", err)
+		return "", fmt.Errorf("getting new iam credentials client: %w", err)
 	}
 
 	err = a.generateSignedJWT(vc)
@@ -45,8 +46,10 @@ func (a *gcpAuthClient) GetVaultToken(vc *vaultClient) (string, error) {
 func (a *gcpAuthClient) generateSignedJWT(vc *vaultClient) error {
 	vc.tracer.trace(fmt.Sprintf("%s/gcp/generateSignedJWT", vc.config.tracePrefix))
 
-	resourceName := fmt.Sprintf("projects/%s/serviceAccounts/%s", vc.config.project, vc.config.serviceAccount)
-	jwtPayload := map[string]interface{}{
+	// `projects/-/serviceAccounts/{ACCOUNT_EMAIL_OR_UNIQUEID}`. The `-` wildcard
+	// character is required; replacing it with a project ID is invalid.
+	// https://pkg.go.dev/cloud.google.com/go/iam@v1.1.8/credentials/apiv1/credentialspb#SignJwtRequest
+	jwtPayload := map[string]any{
 		"aud": "vault/" + vc.config.vaultRole,
 		"sub": vc.config.serviceAccount,
 		"exp": time.Now().Add(time.Minute * 10).Unix(),
@@ -57,11 +60,13 @@ func (a *gcpAuthClient) generateSignedJWT(vc *vaultClient) error {
 		return fmt.Errorf("marshaling payload: %w", err)
 	}
 
-	signJwtReq := &iam.SignJwtRequest{
-		Payload: string(payloadBytes),
+	signJwtReq := &credentialspb.SignJwtRequest{
+		Name:      fmt.Sprintf("projects/-/serviceAccounts/%s", vc.config.serviceAccount),
+		Delegates: []string{fmt.Sprintf("projects/-/serviceAccounts/%s", vc.config.serviceAccount)},
+		Payload:   string(payloadBytes),
 	}
 
-	a.resp, err = a.iamService.Projects.ServiceAccounts.SignJwt(resourceName, signJwtReq).Do()
+	a.resp, err = a.credentialsClient.SignJwt(vc.ctx, signJwtReq)
 	if err != nil {
 		return fmt.Errorf("sigining jwt: %w", err)
 	}

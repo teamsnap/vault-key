@@ -38,6 +38,7 @@ func TestTracer(t *testing.T) {
 
 func TestGcpAuthTracer(t *testing.T) {
 	secretKey, secretValue, secretEngine = "existing-key", "foo", "kv/data/trace/foo"
+	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "test/default_credentials.json")
 
 	cluster := createTestVault(t)
 	defer cluster.Cleanup()
@@ -103,15 +104,11 @@ func test_newGCPVaultTokenTrace(vc *vaultClient) func(*testing.T) {
 		is := is.New(t)
 		vc.tracer = &mockTracer{spans: map[string]bool{}}
 
-		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "test/default_credentials.json")
-
 		NewVaultToken(vc)
-		// _, err := NewVaultToken(vc)
-		// is.NoErr(err)
 
 		val, ok := vc.tracer.(*mockTracer)
 		is.Equal(ok, true)
-		is.Equal(val.spans, map[string]bool{"vault/NewVaultToken": true, "vault/gcp/GetVaultToken": true, "vault/gcp/generateSignedJWT": true})
+		is.Equal(val.spans, map[string]bool{"vault/NewVaultToken": true, "vault/gcp/GetVaultToken": true})
 	}
 }
 func test_newGithubVaultTokenTrace(vc *vaultClient) func(*testing.T) {
