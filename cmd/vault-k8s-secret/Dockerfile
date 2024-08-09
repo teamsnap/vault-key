@@ -1,17 +1,26 @@
-FROM golang:1.16.6-stretch
+FROM golang:1.22.6-bookworm
 
 ENV \
  GOARCH="amd64" \
+ GCLOUD_VERSION="455.0.0" \
  PATH="$PATH:/go/bin"
 
 RUN apt-get update \
  && apt-get install -y \
          apt-transport-https \
          ca-certificates \
- && echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
- && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - \
- && apt-get update \
- && apt-get install -y google-cloud-sdk
+         wget
+
+# install gcloud manually because the latest version ships with a kubectl that does not work for our clusters
+RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-$GCLOUD_VERSION-linux-x86_64.tar.gz \
+&& tar -xzf google-cloud-sdk-$GCLOUD_VERSION-linux-x86_64.tar.gz \
+&& rm google-cloud-sdk-$GCLOUD_VERSION-linux-x86_64.tar.gz \
+&& mv google-cloud-sdk /usr/local \
+&& ln -s /usr/local/google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud \
+&& gcloud components install gke-gcloud-auth-plugin \
+&& gcloud components install kubectl  \
+&& ln -s /usr/local/google-cloud-sdk/bin/kubectl.$KUBECTL_VERSION /usr/local/bin/kubectl \
+&& apt-get remove -y curl wget
 
 WORKDIR /go/src/github.com/teamsnap/vault-k8s-secret
 
