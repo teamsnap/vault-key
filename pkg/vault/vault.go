@@ -128,6 +128,27 @@ func DeleteSecret(ctx context.Context, engine, key string) error {
 	return nil
 }
 
+// CreatePath takes a given path, and adds it to an existing KV v2 engine
+func CreatePath(ctx context.Context, path string) error {
+	config, err := getConfig()
+	if err != nil {
+		return err
+	}
+
+	vc, err := NewVaultClient(ctx, config)
+	if err != nil {
+		return fmt.Errorf("error initializing vault client: %w", err)
+	}
+
+	vc.tracer.trace(fmt.Sprintf("%s/CreatePath", vc.config.tracePrefix))
+
+	if err := vc.createPath(path); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GetSecretVersions fills a map with the versions of secrets pulled from Vault.
 func GetSecretVersions(ctx context.Context, secretVersions *map[string]int64, secretNames []string) error {
 	config, err := getConfig()
