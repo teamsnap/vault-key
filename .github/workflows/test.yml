@@ -19,8 +19,8 @@ jobs:
 
       - name: go get
         run: |
-          find . -type d | while read -r dir; do
-            if [ -f "$dir/go.mod" ] && [[ "$dir" != *"/examples/"* ]]; then
+          find ./pkg -type d | while read -r dir; do
+            if [ -f "$dir/go.mod" ]; then
               echo "Running go mod tidy for: $dir"
               (cd "$dir" && go mod tidy)
             fi
@@ -29,8 +29,8 @@ jobs:
       - name: test
         run: |
           echo secrets.GH_ACTIONS_GCP_SA_STAGING > staging-creds.json
-          find . -type d | while read -r dir; do
-            if [ -f "$dir/go.mod" ] && [[ "$dir" != *"/examples/"* ]]; then
+          find ./pkg -type d | while read -r dir; do
+            if [ -f "$dir/go.mod" ]; then
               echo "Running tests for: $dir"
               (cd "$dir" && go test -race -v -coverprofile=c.out ./...)
             fi
