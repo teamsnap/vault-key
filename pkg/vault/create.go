@@ -28,3 +28,15 @@ func (vc *vaultClient) create(engine, key, value string) (*api.Secret, error) {
 
 	return secret, nil
 }
+
+// createPath takes a path, and adds a new path to a KV v2 engine
+func (vc *vaultClient) createPath(path string) error {
+	vc.tracer.trace(fmt.Sprintf("%s/createPath", vc.config.tracePrefix))
+
+	_, err := vc.write(path, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create new path at %s: %w", path, err)
+	}
+
+	return nil
+}

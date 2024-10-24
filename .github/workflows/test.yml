@@ -1,35 +1,37 @@
-
 name: Build and run
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.19
+      - name: Set up Go 1.23.2
         uses: actions/setup-go@v5
         with:
-          go-version: 1.19
+          go-version: 1.23.2
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v4
 
       - name: go get
         run: |
-          dirs=$(go list -f '{{.Dir}}' -m )
-           for dir in ${dirs[@]}; do
-             cd "$dir"
-             go mod tidy
-           done
+          find ./pkg -type d | while read -r dir; do
+            if [ -f "$dir/go.mod" ]; then
+              echo "Running go mod tidy for: $dir"
+              (cd "$dir" && go mod tidy)
+            fi
+          done
 
       - name: test
         run: |
-         echo secrets.GH_ACTIONS_GCP_SA_STAGING > staging-creds.json
-         dirs=$(go list -f '{{.Dir}}' -m )
-           for dir in ${dirs[@]}; do
-           go test -race -v -coverprofile=$dir/c.out $dir/...
-         done
+          echo secrets.GH_ACTIONS_GCP_SA_STAGING > staging-creds.json
+          find ./pkg -type d | while read -r dir; do
+            if [ -f "$dir/go.mod" ]; then
+              echo "Running tests for: $dir"
+              (cd "$dir" && go test -race -v -coverprofile=c.out ./...)
+            fi
+          done

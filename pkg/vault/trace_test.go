@@ -34,6 +34,7 @@ func TestTracer(t *testing.T) {
 	t.Run("trace update", test_updateTrace(vc))
 	t.Run("trace delete", test_deleteTrace(vc))
 	t.Run("trace new github vault token", test_newGithubVaultTokenTrace(vc))
+	t.Run("trace create path", test_createPathTrace(vc))
 }
 
 func TestGcpAuthTracer(t *testing.T) {
@@ -111,6 +112,7 @@ func test_newGCPVaultTokenTrace(vc *vaultClient) func(*testing.T) {
 		is.Equal(val.spans, map[string]bool{"vault/NewVaultToken": true, "vault/gcp/GetVaultToken": true})
 	}
 }
+
 func test_newGithubVaultTokenTrace(vc *vaultClient) func(*testing.T) {
 	return func(t *testing.T) {
 		is := is.New(t)
@@ -127,5 +129,19 @@ func test_newGithubVaultTokenTrace(vc *vaultClient) func(*testing.T) {
 		val, ok := vc.tracer.(*mockTracer)
 		is.Equal(ok, true)
 		is.Equal(val.spans, map[string]bool{"vault/NewVaultToken": true, "vault/github/GetVaultToken": true, "vault/github/vaultLogin": true})
+	}
+}
+
+func test_createPathTrace(vc *vaultClient) func(*testing.T) {
+	return func(t *testing.T) {
+		is := is.New(t)
+		vc.tracer = &mockTracer{spans: map[string]bool{}}
+
+		err := vc.createPath(secretEngine)
+		is.NoErr(err)
+
+		val, ok := vc.tracer.(*mockTracer)
+		is.Equal(ok, true)
+		is.Equal(val.spans, map[string]bool{"vault/createPath": true, "vault/write": true})
 	}
 }
