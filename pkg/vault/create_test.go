@@ -106,3 +106,17 @@ func create_pathErrsWhenMountDoesNotExist(vc *vaultClient) func(*testing.T) {
 		is.True(err != nil)
 	}
 }
+
+func create_mulipleSecrets(vc *vaultClient) func(*testing.T) {
+	return func(t *testing.T) {
+		is := is.New(t)
+
+		secrets := map[string]string{"new-key": "new new", "fresh-key": "fresh new", "new-fresh-key": "new fresh new"}
+		_, err := vc.write(secretEngine, secrets)
+		is.NoErr(err)
+
+		datum, err := vc.SecretFromVault(secretEngine)
+		is.NoErr(err)
+		is.Equal(len(datum), len(secrets))
+	}
+}

@@ -87,6 +87,29 @@ func CreateSecret(ctx context.Context, engine, key, value string) error {
 	return nil
 }
 
+// CreateMultiSecret takes a map of keys and values for an engine, and adds new key/value pairs in vault.
+func CreateMultiSecret(ctx context.Context, engine string, secrets map[string]string) error {
+	config, err := getConfig()
+	if err != nil {
+		return err
+	}
+
+	vc, err := NewVaultClient(ctx, config)
+	if err != nil {
+		return fmt.Errorf("error initializing vault client: %w", err)
+	}
+
+	vc.tracer.trace(fmt.Sprintf("%s/CreateMultiSecret", vc.config.tracePrefix))
+
+	for key, value := range secrets {
+		if _, err := vc.create(engine, key, value); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // UpdateSecret takes a given key for an engine, and modifies its value in vault.
 func UpdateSecret(ctx context.Context, engine, key, value string) error {
 	config, err := getConfig()
