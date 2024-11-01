@@ -101,10 +101,8 @@ func CreateMultiSecret(ctx context.Context, engine string, secrets map[string]st
 
 	vc.tracer.trace(fmt.Sprintf("%s/CreateMultiSecret", vc.config.tracePrefix))
 
-	for key, value := range secrets {
-		if _, err := vc.create(engine, key, value); err != nil {
-			return err
-		}
+	if _, err := vc.createMulti(engine, secrets); err != nil {
+		return err
 	}
 
 	return nil
