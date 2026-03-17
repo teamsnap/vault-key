@@ -1,4 +1,4 @@
-FROM golang:1.22.6-bookworm
+FROM golang:1.23.2-bookworm
 
 ENV \
  GOARCH="amd64" \
@@ -22,16 +22,18 @@ RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud
 && ln -s /usr/local/google-cloud-sdk/bin/kubectl.$KUBECTL_VERSION /usr/local/bin/kubectl \
 && apt-get remove -y curl wget
 
-WORKDIR /go/src/github.com/teamsnap/vault-k8s-secret
+WORKDIR /go/src/github.com/teamsnap/vault-key
 
-COPY go.mod go.mod
+# Copy local dependency first for layer caching
+COPY pkg/k8s/ pkg/k8s/
 
-RUN go version \
- && go mod download \
- && go mod verify
+# Copy the command module
+COPY cmd/vault-k8s-secret/ cmd/vault-k8s-secret/
 
-COPY . .
+WORKDIR /go/src/github.com/teamsnap/vault-key/cmd/vault-k8s-secret
 
-RUN env GOOS=linux GOARCH=amd64 go build -o vault-k8s-secret
+RUN go mod download
 
-CMD ./entrypoint.sh
+RUN GONOSUMCHECK=* GOOS=linux GOARCH=amd64 go build -mod=mod -o vault-k8s-secret
+
+CMD ["./entrypoint.sh"]

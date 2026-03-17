@@ -9,6 +9,8 @@ require (
 	go.uber.org/zap v1.27.0
 )
 
+replace github.com/teamsnap/vault-key/pkg/k8s => ../../pkg/k8s
+
 require (
 	cel.dev/expr v0.18.0 // indirect
 	cloud.google.com/go v0.116.0 // indirect
