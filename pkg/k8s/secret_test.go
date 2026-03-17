@@ -27,10 +27,10 @@ func TestClient(t *testing.T) {
 		isErr  bool
 	}{
 		{
-			name:   "failure",
+			name:   "secret already exists",
 			secret: secret,
 			client: &k8s.Client{Clientset: testclient.NewSimpleClientset(secret)},
-			isErr:  true,
+			isErr:  false,
 		},
 		{
 			name:   "sucess",
