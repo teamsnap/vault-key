@@ -36,6 +36,10 @@ spec:
               value: vault-role-cloud-functions
             - name: VAULT_SECRET
               value: test/data/test
+            - name: K8S_NAMESPACE
+              value: default
+            - name: K8S_SECRET_NAME
+              value: vault-secret
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/service-account-key.json
             - name: CLUSTER_NAME

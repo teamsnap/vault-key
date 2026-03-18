@@ -54,7 +54,7 @@ func (c Client) createSecret(ctx context.Context, secret *apiv1.Secret) (*apiv1.
 }
 
 func (c Client) getSecret(ctx context.Context, secret *apiv1.Secret) (*apiv1.Secret, error) {
-	gs, err := c.Clientset.CoreV1().Secrets(secret.Namespace).Get(ctx, "vault-secret", metav1.GetOptions{})
+	gs, err := c.Clientset.CoreV1().Secrets(secret.Namespace).Get(ctx, secret.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get latest version of secret: %s", err)
 	}

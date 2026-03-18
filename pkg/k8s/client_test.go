@@ -10,83 +10,71 @@ import (
 	testclient "k8s.io/client-go/kubernetes/fake"
 )
 
-func TestClient(t *testing.T) {
-	secret := &v1.Secret{
+func newTestSecret() *v1.Secret {
+	return &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "vault-secret",
 		},
 		Data: map[string][]byte{"key": []byte("value")},
 	}
-
-	cases := []struct {
-		name   string
-		secret *v1.Secret
-		client *Client
-		isErr  bool
-	}{
-		{
-			name:   "failure",
-			secret: secret,
-			client: &Client{Clientset: testclient.NewSimpleClientset(secret)},
-			isErr:  true,
-		},
-		{
-			name:   "sucess",
-			secret: secret,
-			client: &Client{Clientset: testclient.NewSimpleClientset()},
-			isErr:  false,
-		},
-	}
-
-	for _, c := range cases {
-		t.Run("create secret "+c.name, testCreateSecret(c.client, c.secret, c.isErr))
-		t.Run("update secret "+c.name, testUpdateSecret(c.client, c.secret, c.isErr))
-		t.Run("get secret "+c.name, testGetSecret(c.client, c.secret, c.isErr))
-	}
 }
 
-func testCreateSecret(c *Client, secret *v1.Secret, isErr bool) func(*testing.T) {
-	return func(t *testing.T) {
+func TestClient(t *testing.T) {
+	t.Run("create secret failure", func(t *testing.T) {
 		is := is.New(t)
+		secret := newTestSecret()
+		c := &Client{Clientset: testclient.NewSimpleClientset(secret)}
 
 		s, err := c.createSecret(context.Background(), secret)
-		if isErr {
-			is.True(err != nil)
-			is.Equal(s, nil)
-		} else {
-			is.NoErr(err)
-		}
-	}
-}
+		is.True(err != nil)
+		is.Equal(s, nil)
+	})
 
-func testUpdateSecret(c *Client, secret *v1.Secret, isErr bool) func(*testing.T) {
-	return func(t *testing.T) {
+	t.Run("create secret success", func(t *testing.T) {
 		is := is.New(t)
-		if isErr {
-			secret.ObjectMeta.Name = "shrug"
-		}
+		secret := newTestSecret()
+		c := &Client{Clientset: testclient.NewSimpleClientset()}
+
+		s, err := c.createSecret(context.Background(), secret)
+		is.NoErr(err)
+		is.True(s != nil)
+	})
+
+	t.Run("update secret failure", func(t *testing.T) {
+		is := is.New(t)
+		secret := newTestSecret()
+		c := &Client{Clientset: testclient.NewSimpleClientset()}
 
 		err := c.updateSecret(context.Background(), secret)
-		if isErr {
-			is.True(err != nil)
-		} else {
-			is.NoErr(err)
-		}
-	}
-}
+		is.True(err != nil)
+	})
 
-func testGetSecret(c *Client, secret *v1.Secret, isErr bool) func(*testing.T) {
-	return func(t *testing.T) {
+	t.Run("update secret success", func(t *testing.T) {
 		is := is.New(t)
+		secret := newTestSecret()
+		c := &Client{Clientset: testclient.NewSimpleClientset(secret)}
+
+		err := c.updateSecret(context.Background(), secret)
+		is.NoErr(err)
+	})
+
+	t.Run("get secret failure", func(t *testing.T) {
+		is := is.New(t)
+		secret := newTestSecret()
+		c := &Client{Clientset: testclient.NewSimpleClientset()}
 
 		s, err := c.getSecret(context.Background(), secret)
+		is.True(err != nil)
+		is.Equal(s, nil)
+	})
 
-		// test result is inverted since we succeed when the secret exists
-		if !isErr {
-			is.True(err != nil)
-			is.Equal(s, nil)
-		} else {
-			is.NoErr(err)
-		}
-	}
+	t.Run("get secret success", func(t *testing.T) {
+		is := is.New(t)
+		secret := newTestSecret()
+		c := &Client{Clientset: testclient.NewSimpleClientset(secret)}
+
+		s, err := c.getSecret(context.Background(), secret)
+		is.NoErr(err)
+		is.True(s != nil)
+	})
 }

@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/teamsnap/vault-key/pkg/k8s"
 	"go.uber.org/zap"
 )
 
@@ -11,17 +12,19 @@ type config struct {
 	engine            string
 	defaultSecretPath string
 	k8sNamespace      string
+	k8sSecretName     string
 }
 
 func newConfig(lgr *zap.Logger) *config {
 
 	// load required config from environment
-	defaultSecret := os.Getenv("VAULT_SECRET")
-	k8sNamespace := os.Getenv("K8S_NAMESPACE")
+	defaultSecret := getEnv("VAULT_SECRET", "")
+	k8sNamespace := getEnv("K8S_NAMESPACE", "")
+	k8sSecretName := getEnv("K8S_SECRET_NAME", k8s.DefaultSecretName)
 
 	req := []string{}
 	if len(defaultSecret) < 1 {
-		req = append(req, ("VAULT_SECRET"))
+		req = append(req, "VAULT_SECRET")
 	}
 	if len(k8sNamespace) < 1 {
 		req = append(req, "K8S_NAMESPACE")
@@ -31,12 +34,21 @@ func newConfig(lgr *zap.Logger) *config {
 	}
 	lgr.Debug("vault-path to the default engine", zap.String("VAULT_SECRET", defaultSecret))
 	lgr.Debug("kubernetes namespace to apply secret", zap.String("K8S_NAMESPACE", k8sNamespace))
+	lgr.Debug("kubernetes secret name", zap.String("K8S_SECRET_NAME", k8sSecretName))
 
 	return &config{
 		engine:            translatePath(defaultSecret),
 		defaultSecretPath: defaultSecret,
 		k8sNamespace:      k8sNamespace,
+		k8sSecretName:     k8sSecretName,
 	}
+}
+
+func getEnv(varName, defaultVal string) string {
+	if value, isPresent := os.LookupEnv(varName); isPresent {
+		return value
+	}
+	return defaultVal
 }
 
 // translatePath is a helper that converts a path to a vault secret

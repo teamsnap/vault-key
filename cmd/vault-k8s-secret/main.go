@@ -55,6 +55,7 @@ func run(ctx context.Context, lgr *zap.Logger) error {
 		&k8s.Secret{
 			Secrets:   secrets[cfg.defaultSecretPath],
 			Namespace: cfg.k8sNamespace,
+			Name:      cfg.k8sSecretName,
 		}); err != nil {
 		return fmt.Errorf("unable to apply secrets to namespace %s: %w", cfg.k8sNamespace, err)
 	}

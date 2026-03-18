@@ -16,10 +16,14 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
+// DefaultSecretName is the default name for the Kubernetes secret created by vault-key.
+const DefaultSecretName = "vault-secret"
+
 // Secret holds a map of the secrets that need to be created in Kubernetes
 type Secret struct {
 	Secrets   map[string]string
 	Namespace string
+	Name      string
 }
 
 // ApplySecret takes a Vault secret and k8s namespace and creates the k8s secret based on the data
@@ -47,9 +51,14 @@ func ApplySecret(vaultSecret *Secret) error {
 		secretData[key] = []byte(val)
 	}
 
+	secretName := vaultSecret.Name
+	if secretName == "" {
+		secretName = DefaultSecretName
+	}
+
 	secret := &apiv1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "vault-secret",
+			Name:      secretName,
 			Namespace: vaultSecret.Namespace,
 		},
 		Data: secretData,

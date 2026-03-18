@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"os"
 	"strings"
 
 	"go.uber.org/zap"
@@ -57,13 +56,4 @@ func newLogger(service string) (*zap.Logger, error) {
 	cfg.Level.SetLevel(lvl)
 
 	return logger, nil
-}
-
-// getEnv gets the value of an enviroinment variable named by the key.
-// If the key is not found, a fallback value is used.
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
 }
