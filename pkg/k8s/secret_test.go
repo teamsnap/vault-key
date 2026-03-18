@@ -33,7 +33,7 @@ func TestClient(t *testing.T) {
 			isErr:  false,
 		},
 		{
-			name:   "sucess",
+			name:   "success",
 			secret: secret,
 			client: &k8s.Client{Clientset: testclient.NewSimpleClientset()},
 			isErr:  false,

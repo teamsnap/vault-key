@@ -30,7 +30,7 @@ func TestClient(t *testing.T) {
 		is.Equal(s, nil)
 	})
 
-	t.Run("create secret sucess", func(t *testing.T) {
+	t.Run("create secret success", func(t *testing.T) {
 		is := is.New(t)
 		secret := newTestSecret()
 		c := &Client{Clientset: testclient.NewSimpleClientset()}
@@ -49,7 +49,7 @@ func TestClient(t *testing.T) {
 		is.True(err != nil)
 	})
 
-	t.Run("update secret sucess", func(t *testing.T) {
+	t.Run("update secret success", func(t *testing.T) {
 		is := is.New(t)
 		secret := newTestSecret()
 		c := &Client{Clientset: testclient.NewSimpleClientset(secret)}
@@ -68,7 +68,7 @@ func TestClient(t *testing.T) {
 		is.Equal(s, nil)
 	})
 
-	t.Run("get secret sucess", func(t *testing.T) {
+	t.Run("get secret success", func(t *testing.T) {
 		is := is.New(t)
 		secret := newTestSecret()
 		c := &Client{Clientset: testclient.NewSimpleClientset(secret)}
