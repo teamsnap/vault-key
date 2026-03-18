@@ -36,4 +36,8 @@ RUN go mod download
 
 RUN GONOSUMCHECK=* GOOS=linux GOARCH=amd64 go build -mod=mod -o vault-k8s-secret
 
+RUN useradd --create-home --uid 10001 appuser \
+ && chown -R appuser:appuser /go/src/github.com/teamsnap/vault-key
+USER appuser
+
 CMD ["./entrypoint.sh"]
