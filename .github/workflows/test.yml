@@ -28,7 +28,7 @@ jobs:
 
       - name: test
         run: |
-          echo secrets.GH_ACTIONS_GCP_SA_STAGING > staging-creds.json
+          echo vars.GH_ACTIONS_GCP_SA_STAGING > staging-creds.json
           find ./pkg -type d | while read -r dir; do
             if [ -f "$dir/go.mod" ]; then
               echo "Running tests for: $dir"
