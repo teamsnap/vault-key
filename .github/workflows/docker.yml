@@ -13,7 +13,7 @@ permissions:
 jobs:
   staging:
     if: ${{ !startsWith(github.actor, 'dependabot') }}
-    uses: teamsnap/github-workflows/.github/workflows/docker-build-push.yml@v2
+    uses: teamsnap/github-workflows/.github/workflows/docker-build-push.yml@v5
     with:
       file: cmd/vault-k8s-secret/Dockerfile
       image: vault-key/k8-secret
