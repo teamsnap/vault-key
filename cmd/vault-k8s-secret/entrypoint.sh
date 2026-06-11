@@ -40,7 +40,10 @@ JWT_PAYLOAD=$(printf '{"iss":"%s","scope":"https://www.googleapis.com/auth/cloud
   "${SA_EMAIL}" "${NOW}" "${EXP}" | openssl base64 -e -A | tr '+/' '-_' | tr -d '=')
 
 SIGNING_INPUT="${JWT_HEADER}.${JWT_PAYLOAD}"
-SIGNATURE=$(printf '%s' "${SIGNING_INPUT}" | openssl dgst -sha256 -sign <(printf '%s' "${SA_KEY}") | openssl base64 -e -A | tr '+/' '-_' | tr -d '=')
+SA_KEY_FILE=$(mktemp)
+printf '%s' "${SA_KEY}" > "${SA_KEY_FILE}"
+SIGNATURE=$(printf '%s' "${SIGNING_INPUT}" | openssl dgst -sha256 -sign "${SA_KEY_FILE}" | openssl base64 -e -A | tr '+/' '-_' | tr -d '=')
+rm -f "${SA_KEY_FILE}"
 
 ACCESS_TOKEN=$(curl -s -X POST https://oauth2.googleapis.com/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
