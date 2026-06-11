@@ -4,6 +4,7 @@ FROM golang:1.23.2-bookworm AS builder
 WORKDIR /go/src/github.com/teamsnap/vault-key
 
 COPY pkg/k8s/ pkg/k8s/
+COPY pkg/vault/ pkg/vault/
 COPY cmd/vault-k8s-secret/ cmd/vault-k8s-secret/
 
 WORKDIR /go/src/github.com/teamsnap/vault-key/cmd/vault-k8s-secret
