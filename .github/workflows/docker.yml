@@ -1,0 +1,25 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  staging:
+    if: ${{ !startsWith(github.actor, 'dependabot') }}
+    uses: teamsnap/github-workflows/.github/workflows/docker-build-push.yml@v5
+    with:
+      file: cmd/vault-k8s-secret/Dockerfile
+      image: vault-key/k8-secret
+    secrets:
+      gcp-project-id: ${{ vars.GH_ACTIONS_GCP_PROJECT_STAGING }}
+      workload-identity-provider: ${{ vars.GH_ACTIONS_WORKLOAD_IDENTITY_POOL_PROVIDER_STAGING }}
+      workload-identity-service-account-email: ${{ vars.GH_ACTIONS_IMAGES_WORKLOAD_IDENTITY_SA_STAGING }}
+      github-token-app-id: ${{ vars.QA_ZOIDBERG_APP_ID }}
+      github-token-app-key: ${{ secrets.QA_ZOIDBERG_PEM }}

@@ -15,7 +15,7 @@ docker_build_vault_init:
 	@docker build -f $(BASE_DIR)/cmd/vault-init/Dockerfile -t teamsnap/$(APP_NAME)/vault-init:latest $(BASE_DIR)/cmd/vault-init
 
 docker_build_vault_k8s_secret:
-	@docker build -f $(BASE_DIR)/cmd/vault-k8s-secret/Dockerfile -t teamsnap/$(APP_NAME)/vault-k8s-secret:latest $(BASE_DIR)/cmd/vault-k8s-secret
+	@docker build -f $(BASE_DIR)/cmd/vault-k8s-secret/Dockerfile -t teamsnap/$(APP_NAME)/vault-k8s-secret:latest $(BASE_DIR)
 # ============================ [END] Build Targets =========================== #
 
 # ============================ [START] Run Targets =========================== #
