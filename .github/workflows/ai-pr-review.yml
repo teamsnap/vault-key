@@ -1,0 +1,29 @@
+# This workflow runs a comprehensive AI-powered PR review using the reusable
+# workflow from teamsnap/github-workflows. It triggers when someone comments
+# /review on a pull request and uses the pr-review-toolkit plugin to dispatch
+# specialized review agents (code quality, tests, error handling, types,
+# comments, simplification).
+
+name: AI PR Review
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  checks: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  ai-pr-review:
+    if: >-
+      github.event.issue.pull_request
+      && contains(github.event.comment.body, '/review')
+    uses: teamsnap/github-workflows/.github/workflows/ai-pr-review.yml@v5
+    with:
+      pr_number: ${{ github.event.issue.number }}
+      client_id: ${{ vars.QA_ZOIDBERG_APP_ID }}
+    secrets:
+      app_pem: ${{ secrets.QA_ZOIDBERG_PEM }}
+      litellm_ai_pr_review_token: ${{ secrets.LITELLM_GH_PR_REVIEW_TOKEN }}
+      jira_api_token: ${{ secrets.ATLASSIAN_API_TOKEN_BOT_BENDER }}
